@@ -15,6 +15,7 @@ interface ExperimentCardProps {
   buttonText?: string;
   imageSrc?: string;
   imageAlt?: string;
+  onHoverStart?: () => void;
 }
 
 const variantStyles: Record<
@@ -97,6 +98,7 @@ export function ExperimentCard({
   buttonText = "Try Now",
   imageSrc = "/placeholder.svg",
   imageAlt = "Experiment preview",
+  onHoverStart,
 }: ExperimentCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const styles = variantStyles[variant];
@@ -110,7 +112,10 @@ export function ExperimentCard({
         transform: isHovered ? "scale(1.02)" : "scale(1)",
         transition: "transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s ease-out",
       }}
-      onMouseEnter={() => setIsHovered(true)}
+      onMouseEnter={() => {
+        setIsHovered(true);
+        onHoverStart?.();
+      }}
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Top Container */}
