@@ -9,12 +9,17 @@ import {
   releaseFromHanging,
 } from "@/lib/physics/constraints";
 import { getMascotTypeCount } from "@/components/MascotLauncher/Mascot";
+import { getRandomMascot } from "@/lib/mascots/registry";
+import { playSound } from "@/lib/sounds/soundManager";
 
 const { World, Body, Events } = Matter;
 
 const MAX_MASCOTS = 30;
 const MAX_HANGING = 2;
 const BOUNCES_TO_STAND = 1; // Number of bounces before standing up
+
+// Birth animation timing
+const BIRTH_DURATION = 180; // ms - duration of birth animation
 
 interface SpawnerConfig {
   engine: Matter.Engine | null;
@@ -48,42 +53,73 @@ export function useMascotSpawner({ engine, logoPosition, letterAnchors }: Spawne
       const id = `mascot-${nextIdRef.current++}`;
       const mascotType = Math.floor(Math.random() * getMascotTypeCount());
 
-      // Create physics body at logo position
+      // Get a random mascot from the registry for expressive features
+      const registryMascot = getRandomMascot();
+
+      // Create physics body at logo position - starts static during birth
       const body = createMascotBody(currentLogoPosition.x, currentLogoPosition.y, id, mascotType);
+      Body.setStatic(body, true); // Static during birth animation
       World.add(currentEngine.world, body);
 
-      // Calculate launch direction (away from click)
+      // === IMPROVED LAUNCH TRAJECTORY CALCULATION ===
+
+      // Calculate base direction (away from click)
       const dx = currentLogoPosition.x - clickX;
       const dy = currentLogoPosition.y - clickY;
       const distance = Math.sqrt(dx * dx + dy * dy);
 
-      // Normalize and add random variation
-      const angleVariation = (Math.random() - 0.5) * 0.7; // ±20 degrees in radians
-      const baseAngle = Math.atan2(dy, dx);
-      const launchAngle = baseAngle + angleVariation;
+      // Determine if click is on left or right of logo
+      const clickOnLeft = clickX < currentLogoPosition.x;
 
-      // Map distance to force (closer = stronger)
+      // Strong horizontal bias - launch in opposite direction of click with big arcs
+      // If click is on left, launch right (positive X). If click is on right, launch left (negative X)
+      const horizontalDirection = clickOnLeft ? 1 : -1;
+
+      // Add some horizontal spread variation (±30 degrees = ±0.52 radians)
+      const horizontalSpread = (Math.random() - 0.5) * 1.0;
+
+      // Strong upward bias for nice arcs (30-50 degrees up = -0.52 to -0.87 radians)
+      const upwardAngle = -0.52 - Math.random() * 0.35;
+
+      // Calculate launch angle: start from horizontal direction, add upward bias and spread
+      const baseAngle = horizontalDirection > 0 ? 0 : Math.PI; // 0 = right, PI = left
+      const launchAngle = baseAngle + horizontalSpread + upwardAngle;
+
+      // Map distance to force with MORE variation - increased base forces for bigger arcs
       const minDist = 50;
       const maxDist = 400;
-      const minForce = 0.025;
-      const maxForce = 0.06;
-      const normalizedDist = Math.min(Math.max((distance - minDist) / (maxDist - minDist), 0), 1);
-      const forceMagnitude = maxForce - normalizedDist * (maxForce - minForce);
+      const baseMinForce = 0.025; // Increased from 0.02
+      const baseMaxForce = 0.10;  // Increased from 0.08
 
-      // Apply launch impulse
+      // Add random force variation (±40%)
+      const forceVariation = 0.7 + Math.random() * 0.6; // 0.7 to 1.3
+
+      const normalizedDist = Math.min(Math.max((distance - minDist) / (maxDist - minDist), 0), 1);
+      const baseForceMagnitude = baseMaxForce - normalizedDist * (baseMaxForce - baseMinForce);
+      const forceMagnitude = baseForceMagnitude * forceVariation;
+
+      // Calculate launch impulse (will be applied after birth animation)
       const forceX = Math.cos(launchAngle) * forceMagnitude;
       const forceY = Math.sin(launchAngle) * forceMagnitude;
-      Body.applyForce(body, body.position, { x: forceX, y: forceY });
+
+      // Random spin - clockwise or counter-clockwise with varying intensity
+      const spinDirection = Math.random() > 0.5 ? 1 : -1;
+      const spinMagnitude = 0.1 + Math.random() * 0.3; // Varying tumble intensity
+      const spin = spinDirection * spinMagnitude;
 
       const newMascot: MascotBody = {
         id,
         body,
-        state: "flying",
+        state: "birthing", // Start in birthing state
         mascotType,
+        mascotId: registryMascot.id, // Registry ID for expressive mascots
         bounceCount: 0,
         cardBounceCount: 0,
         createdAt: Date.now(),
         onCard: false,
+        birthProgress: 0,
+        birthStartTime: Date.now(),
+        pendingLaunch: { forceX, forceY, spin },
       };
 
       // Track collisions - specifically card collisions
@@ -235,10 +271,57 @@ export function useMascotSpawner({ engine, logoPosition, letterAnchors }: Spawne
     }
   }, []);
 
+  // Update birthing mascots - progress animation and launch when complete
+  const updateBirthing = useCallback(() => {
+    const currentEngine = engineRef.current;
+    if (!currentEngine) return;
+
+    let needsUpdate = false;
+    const now = Date.now();
+
+    for (const mascot of mascotsRef.current) {
+      if (mascot.state !== "birthing" || !mascot.birthStartTime) continue;
+
+      const elapsed = now - mascot.birthStartTime;
+      const progress = Math.min(elapsed / BIRTH_DURATION, 1);
+
+      mascot.birthProgress = progress;
+      needsUpdate = true;
+
+      // Birth animation complete - launch the mascot
+      if (progress >= 1 && mascot.pendingLaunch) {
+        // Play whoosh sound on launch
+        playSound("whoosh");
+
+        // Make body dynamic
+        Body.setStatic(mascot.body, false);
+
+        // Apply launch impulse
+        Body.applyForce(mascot.body, mascot.body.position, {
+          x: mascot.pendingLaunch.forceX,
+          y: mascot.pendingLaunch.forceY,
+        });
+
+        // Apply spin
+        Body.setAngularVelocity(mascot.body, mascot.pendingLaunch.spin);
+
+        // Transition to flying state
+        mascot.state = "flying";
+        mascot.birthProgress = undefined;
+        mascot.birthStartTime = undefined;
+        mascot.pendingLaunch = undefined;
+      }
+    }
+
+    if (needsUpdate) {
+      setMascots((prev) => [...prev]);
+    }
+  }, []);
+
   const cleanupStale = useCallback(() => {
     for (const mascot of mascotsRef.current) {
-      // Skip hanging, dragging, standing, or already removing mascots
-      if (mascot.state === "hanging" || mascot.state === "dragging" || mascot.state === "standing" || mascot.isRemoving) continue;
+      // Skip hanging, dragging, standing, birthing, or already removing mascots
+      if (mascot.state === "hanging" || mascot.state === "dragging" || mascot.state === "standing" || mascot.state === "birthing" || mascot.isRemoving) continue;
 
       // Only remove if off screen (no time-based removal)
       const pos = mascot.body.position;
@@ -252,6 +335,28 @@ export function useMascotSpawner({ engine, logoPosition, letterAnchors }: Spawne
       }
     }
   }, [removeMascot]);
+
+  // Clear all mascots immediately (remove from physics world)
+  const clearAllMascots = useCallback(() => {
+    const currentEngine = engineRef.current;
+    if (!currentEngine) return;
+
+    // Remove all mascot bodies from physics world
+    for (const mascot of mascotsRef.current) {
+      World.remove(currentEngine.world, mascot.body);
+      if (mascot.hangingConstraint) {
+        World.remove(currentEngine.world, mascot.hangingConstraint);
+      }
+      // Clear any hanging timeout
+      const timeout = hangingTimeoutsRef.current.get(mascot.id);
+      if (timeout) {
+        clearTimeout(timeout);
+        hangingTimeoutsRef.current.delete(mascot.id);
+      }
+    }
+
+    setMascots([]);
+  }, []);
 
   // Make all mascots fly away upward
   const flyAwayAll = useCallback(() => {
@@ -273,7 +378,12 @@ export function useMascotSpawner({ engine, logoPosition, letterAnchors }: Spawne
 
     // Trigger re-render
     setMascots((prev) => [...prev]);
-  }, []);
+
+    // Clear all mascots after they fly away (1 second delay)
+    setTimeout(() => {
+      clearAllMascots();
+    }, 1000);
+  }, [clearAllMascots]);
 
   // Knock over mascots standing on a specific card (when card is hovered)
   const knockOverOnCard = useCallback((cardIndex: number, cardRect: DOMRect) => {
@@ -318,6 +428,7 @@ export function useMascotSpawner({ engine, logoPosition, letterAnchors }: Spawne
     removeMascot,
     updateHanging,
     updateStanding,
+    updateBirthing,
     cleanupStale,
     flyAwayAll,
     knockOverOnCard,

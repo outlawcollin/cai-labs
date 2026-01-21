@@ -114,6 +114,18 @@
   --color-brand-default-blue: #195eff;
   --color-brand-grey-black: #131313;
 
+  /* Card Colors - Fixed across light/dark modes */
+  --color-wired-lime: #aed900;
+  --color-midnight-forest: #2b9247;
+  --color-lowkey-lavender: #df91f2;
+  --color-alt-violet: #ae00d9;
+  --color-slippery-butter: #fff59e;
+  --color-toasty-amber: #f28500;
+  --color-irl-rose: #ffadd2;
+  --color-hyperlink-magenta: #d90082;
+  --color-icy-sky: #abf5ed;
+  --color-default-blue: #195eff;
+
   /* Neutral Light Scale */
   --color-neutral-000: #f3f3f3;
   --color-neutral-100: #dedede;
@@ -432,4 +444,14 @@ body {
   background: var(--color-background);
   color: var(--color-on-background);
   font-family: var(--font-sans);
+}
+
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }

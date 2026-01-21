@@ -3,7 +3,11 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { ExperimentCard } from "@/components/ExperimentCard";
-import { LabsLogo } from "@/components/Logo";
+import { NavBar } from "@/components/NavBar";
+import { GlitchText } from "@/components/GlitchText";
+import { useHomeIntro } from "@/hooks/useHomeIntro";
+import { SpawnLogo, SpawnLogoHandle } from "@/components/SpawnLogo";
+import { useSpawnQueue } from "@/hooks/useSpawnQueue";
 
 // Dynamic import for physics components to avoid SSR issues
 const MascotOverlay = dynamic(
@@ -11,67 +15,68 @@ const MascotOverlay = dynamic(
   { ssr: false }
 );
 
-// Card data with hero positions (stacked) and grid positions
+// Card data with hero positions (stacked deck) and horizontal scroll positions
+// Scroll order: pink, green, yellow, purple, blue (left to right when scrolled)
+// Hero: yellow in front center, others fanned out behind
+// Hero x positions are relative to center of viewport (will be offset dynamically)
 const experiments = [
   {
-    title: "Streams",
-    description: "Description sentence of what the experiment is all about",
-    href: "/experiments/streams",
-    variant: "secondary" as const,
-    tag: "featured",
-    hero: { rotate: 0, x: 0, y: 0, zIndex: 5 },
-    grid: { row: 0, col: 0 },
+    title: "podcasts where characters lead the conversation",
+    description: "Create podcasts led by characters from any topic and jump into the conversation as it unfolds.",
+    href: "/experiments/podcasts",
+    variant: "rose-light" as const,
+    buttonText: "Try Podcasts",
+    imageSrc: "/experiments/podcasts.png",
+    heroOffset: { rotate: -5, x: -580, y: 120, zIndex: 3 }, // Far left behind
   },
   {
-    title: "Comics",
-    description: "Description sentence of what the experiment is all about",
+    title: "turn stories into comics you can continue",
+    description: "Create illustrated comic scenes using characters, then remix the comic into a live chat and keep the story going.",
     href: "/experiments/comics",
-    variant: "tertiary" as const,
-    tag: "featured",
-    hero: { rotate: -5, x: -380, y: 145, zIndex: 4 },
-    grid: { row: 0, col: 1 },
+    variant: "lime-light" as const,
+    buttonText: "Try Comics",
+    imageSrc: "/experiments/comics.png",
+    heroOffset: { rotate: -5, x: -380, y: 40, zIndex: 4 }, // Left side behind
   },
   {
-    title: "Image Studio",
-    description: "Description sentence of what the experiment is all about",
+    title: "watch characters act out your ideas",
+    description: "Generate short form videos with characters, scenes, and motion using a prompt driven creation studio.",
+    href: "/experiments/streams",
+    variant: "butter-light" as const,
+    buttonText: "Try Streams",
+    imageSrc: "/experiments/streams.png",
+    heroOffset: { rotate: 0, x: 0, y: -50, zIndex: 5 }, // Front center card
+  },
+  {
+    title: "see characters and yourself in new worlds",
+    description: "Generate styled images by choosing characters, personas, moods, and scenes in a fast, visual flow.",
     href: "/experiments/image-studio",
-    variant: "warning" as const,
-    tag: "featured",
-    hero: { rotate: 5, x: 380, y: 145, zIndex: 4 },
-    grid: { row: 0, col: 2 },
+    variant: "lavender-light" as const,
+    buttonText: "Try Image Studio",
+    imageSrc: "/experiments/image-studio.png",
+    heroOffset: { rotate: 5, x: 380, y: 40, zIndex: 4 }, // Right side behind
   },
   {
-    title: "Fandom News",
-    description: "Description sentence of what the experiment is all about",
-    href: "/experiments/fandom-news",
-    variant: "error" as const,
-    tag: "featured",
-    hero: { rotate: 5, x: -620, y: 233, zIndex: 3 },
-    grid: { row: 1, col: 0 },
-  },
-  {
-    title: "Books",
-    description: "Description sentence of what the experiment is all about",
+    title: "step inside books and play the story",
+    description: "Play through public domain books as a character, follow the story, or rewrite the world entirely.",
     href: "/experiments/books",
-    variant: "primary" as const,
-    tag: "featured",
-    hero: { rotate: -5, x: 620, y: 233, zIndex: 3 },
-    grid: { row: 1, col: 1 },
+    variant: "sky-light" as const,
+    buttonText: "Try Books",
+    imageSrc: "/experiments/books.png",
+    heroOffset: { rotate: 5, x: 580, y: 120, zIndex: 3 }, // Far right behind
   },
 ];
 
 const CARD_WIDTH = 420;
-const CARD_HEIGHT = 580;
-const GRID_GAP = 20;
-
-// Scroll snap thresholds
-const SNAP_THRESHOLD = 150; // Pixels of scroll before snapping
-const SNAPPED_SCROLL_POSITION = 400; // Where to snap to when scrolled
+const CARD_HEIGHT = 640;
+const CARD_GAP = 20;
 
 export default function Home() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
   const [bouncingCards, setBouncingCards] = useState<Set<number>>(new Set());
+  const [windowWidth, setWindowWidth] = useState(1920); // Default for SSR
+  const [windowHeight, setWindowHeight] = useState(900); // Default for SSR
   const containerRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
@@ -82,8 +87,28 @@ export default function Home() {
   const knockOverRef = useRef<((cardIndex: number, cardRect: DOMRect) => void) | null>(null);
   const bounceTimeoutsRef = useRef<Map<number, NodeJS.Timeout>>(new Map());
   const lastScrollY = useRef(0);
-  const isSnapping = useRef(false);
   const hasTriggeredFlyAway = useRef(false);
+  const spawnLogoRef = useRef<SpawnLogoHandle>(null);
+  const pendingClickRef = useRef<{ x: number; y: number } | null>(null);
+  const respawnMascotsRef = useRef<(() => void) | null>(null);
+  const portalActiveRef = useRef(false);
+  const hasLeftHero = useRef(false);
+
+  // Check for reduced motion preference
+  const [reducedMotion, setReducedMotion] = useState(false);
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReducedMotion(mediaQuery.matches);
+    const handler = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
+    mediaQuery.addEventListener("change", handler);
+    return () => mediaQuery.removeEventListener("change", handler);
+  }, []);
+
+  // Intro animation hook
+  const intro = useHomeIntro({
+    reducedMotion,
+    cardCount: experiments.length,
+  });
 
   // Handle spawner ready from MascotOverlay
   const handleSpawnerReady = useCallback((spawnFn: (x: number, y: number) => void) => {
@@ -99,6 +124,36 @@ export default function Home() {
   const handleKnockOverReady = useCallback((knockOverFn: (cardIndex: number, cardRect: DOMRect) => void) => {
     knockOverRef.current = knockOverFn;
   }, []);
+
+  // Handle respawn ready from MascotOverlay
+  const handleRespawnReady = useCallback((respawnFn: () => void) => {
+    respawnMascotsRef.current = respawnFn;
+  }, []);
+
+  // Handle portal state change from MascotOverlay
+  const handlePortalStateChange = useCallback((isActive: boolean) => {
+    portalActiveRef.current = isActive;
+  }, []);
+
+  // Handle spawn ready callback from SpawnLogo animation
+  const handleSpawnAnimationReady = useCallback(() => {
+    // The logo animation burst happened, now spawn the mascot
+    if (pendingClickRef.current && spawnMascotRef.current) {
+      spawnMascotRef.current(pendingClickRef.current.x, pendingClickRef.current.y);
+      pendingClickRef.current = null;
+    }
+  }, []);
+
+  // Spawn queue for handling rapid clicks
+  const { queueSpawn } = useSpawnQueue({
+    onSpawnReady: (clickX, clickY) => {
+      // Store click position and trigger logo animation
+      pendingClickRef.current = { x: clickX, y: clickY };
+      spawnLogoRef.current?.triggerSpawn();
+    },
+    cooldownMs: 450,
+    maxQueueSize: 5,
+  });
 
   // Handle card hover to knock over mascots
   const handleCardHover = useCallback((cardIndex: number) => {
@@ -135,8 +190,17 @@ export default function Home() {
 
   // Handle click on page background to spawn mascots (only in hero state)
   const handlePageClick = useCallback((e: React.MouseEvent) => {
+    // Skip intro on click if still playing
+    if (!intro.isComplete) {
+      intro.skipIntro();
+      return;
+    }
+
     // Only spawn when in hero (pre-scrolled) state
     if (isScrolled) return;
+
+    // Don't spawn if portal is active (prevents spawn on drop)
+    if (portalActiveRef.current) return;
 
     // Don't spawn if clicking on interactive elements
     const target = e.target as HTMLElement;
@@ -149,24 +213,34 @@ export default function Home() {
       return;
     }
 
-    // Spawn mascot at click position
-    if (spawnMascotRef.current) {
-      spawnMascotRef.current(e.clientX, e.clientY);
-    }
-  }, [isScrolled]);
+    // Queue spawn with animated logo transformation
+    queueSpawn(e.clientX, e.clientY);
+  }, [isScrolled, intro, queueSpawn]);
+
+  // Skip intro on ESC key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !intro.isComplete) {
+        intro.skipIntro();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [intro]);
 
   useEffect(() => {
     const handleScroll = () => {
-      // Skip if we're in the middle of a programmatic snap
-      if (isSnapping.current) return;
-
       const scrollY = window.scrollY;
-      const previousScrollY = lastScrollY.current;
-      const scrollingDown = scrollY > previousScrollY;
       lastScrollY.current = scrollY;
 
-      const triggerPoint = 50;
-      const animationDistance = 300;
+      // Skip intro on any scroll
+      if (scrollY > 10 && !intro.isComplete) {
+        intro.skipIntro();
+      }
+
+      // Smooth progress calculation - animation happens over scroll distance
+      const triggerPoint = 0;
+      const animationDistance = 400;
 
       const progress = Math.min(
         Math.max((scrollY - triggerPoint) / animationDistance, 0),
@@ -174,38 +248,28 @@ export default function Home() {
       );
       setScrollProgress(progress);
 
-      const wasScrolled = isScrolled;
-      const nowScrolled = scrollY > 30;
+      const nowScrolled = scrollY > 50;
       setIsScrolled(nowScrolled);
 
-      // Trigger fly away when transitioning from hero to scrolled state
-      if (!wasScrolled && nowScrolled && scrollingDown && !hasTriggeredFlyAway.current) {
+      // Trigger fly away when entering scrolled state (regardless of direction)
+      // This ensures mascots always fly away when scrolled down
+      if (nowScrolled && !hasTriggeredFlyAway.current) {
         hasTriggeredFlyAway.current = true;
+        hasLeftHero.current = true;
         if (flyAwayRef.current) {
           flyAwayRef.current();
         }
       }
 
-      // Reset fly away trigger when back at top
-      if (scrollY < 10) {
+      // Re-spawn mascots when scrolling back to hero position (with delay)
+      if (scrollY < 10 && hasLeftHero.current && hasTriggeredFlyAway.current) {
+        hasLeftHero.current = false;
         hasTriggeredFlyAway.current = false;
-      }
-
-      // Scroll snapping logic
-      if (scrollY > 0 && scrollY < SNAPPED_SCROLL_POSITION) {
-        // Determine snap direction based on threshold
-        const shouldSnapDown = scrollY > SNAP_THRESHOLD;
-
-        isSnapping.current = true;
-        window.scrollTo({
-          top: shouldSnapDown ? SNAPPED_SCROLL_POSITION : 0,
-          behavior: "smooth",
-        });
-
-        // Reset snapping flag after animation
+        // Add delay before respawning mascots
         setTimeout(() => {
-          isSnapping.current = false;
-          lastScrollY.current = window.scrollY;
+          if (respawnMascotsRef.current && window.scrollY < 10) {
+            respawnMascotsRef.current();
+          }
         }, 500);
       }
     };
@@ -214,7 +278,7 @@ export default function Home() {
     handleScroll();
 
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [isScrolled]);
+  }, [intro]);
 
   // Get logo position for mascot spawning
   useEffect(() => {
@@ -233,6 +297,18 @@ export default function Home() {
     return () => window.removeEventListener("resize", updateLogoPosition);
   }, [isScrolled]);
 
+  // Track window dimensions for card centering and viewport-relative positioning
+  useEffect(() => {
+    const updateWindowDimensions = () => {
+      setWindowWidth(window.innerWidth);
+      setWindowHeight(window.innerHeight);
+    };
+
+    updateWindowDimensions();
+    window.addEventListener("resize", updateWindowDimensions);
+    return () => window.removeEventListener("resize", updateWindowDimensions);
+  }, []);
+
   const easeOutExpo = (t: number) => {
     return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
   };
@@ -240,39 +316,62 @@ export default function Home() {
   const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 
   const easedProgress = easeOutExpo(scrollProgress);
-  const textEasedProgress = easeOutCubic(scrollProgress);
+  // Hero text fades out faster - reaches full fade by 50% scroll progress
+  const textFadeProgress = Math.min(scrollProgress * 2.5, 1);
+  const textEasedProgress = easeOutCubic(textFadeProgress);
 
-  const getGridPosition = (row: number, col: number) => {
-    const cardsInRow = row === 0 ? 3 : 2;
-    const rowWidth = cardsInRow * CARD_WIDTH + (cardsInRow - 1) * GRID_GAP;
-    const startX = -rowWidth / 2 + CARD_WIDTH / 2;
-    const x = startX + col * (CARD_WIDTH + GRID_GAP);
-    const y = row * (CARD_HEIGHT + GRID_GAP);
-    return { x, y };
-  };
+  // Section title fades in later - starts at 40% scroll, fully visible at 100%
+  const sectionTitleProgress = Math.max(0, (scrollProgress - 0.4) / 0.6);
+  const sectionTitleEasedProgress = easeOutCubic(sectionTitleProgress);
 
-  const getCardStyle = (
-    hero: { rotate: number; x: number; y: number; zIndex: number },
-    grid: { row: number; col: number }
+  // Viewport-relative positioning - scale positions based on screen height
+  // Reference height is 900px, positions scale proportionally
+  const heightScale = windowHeight / 900;
+
+  // Calculate offset to center the cards in hero state
+  // In hero state, we want the middle card (index 2, butter) to be centered
+  // The middle card's left edge in row layout is at: 2 * (CARD_WIDTH + CARD_GAP) = 880px from container left
+  // To center it, we need to offset by: (windowWidth / 2) - (CARD_WIDTH / 2) - 880 - 44 (padding)
+  const middleCardRowX = 2 * (CARD_WIDTH + CARD_GAP); // Position of middle card in row
+  const heroCenterOffset = (windowWidth / 2) - (CARD_WIDTH / 2) - middleCardRowX - 44;
+
+  // Calculate card position based on scroll progress
+  const getCardTransform = (
+    heroOffset: { rotate: number; x: number; y: number; zIndex: number },
+    index: number
   ) => {
-    const gridPos = getGridPosition(grid.row, grid.col);
+    // Target horizontal position in row layout (relative to container with padding)
+    const targetX = index * (CARD_WIDTH + CARD_GAP);
+    const targetY = 0;
 
-    const currentX = hero.x + (gridPos.x - hero.x) * easedProgress;
-    const currentY = hero.y + (gridPos.y - hero.y) * easedProgress;
-    const currentRotate = hero.rotate * (1 - easedProgress);
+    // Hero position: offset from center (heroOffset.x is relative to center)
+    // We add heroCenterOffset to convert the center-relative heroOffset to container-relative position
+    const heroX = heroCenterOffset + middleCardRowX + heroOffset.x;
+    // Scale Y position based on viewport height
+    const heroY = heroOffset.y * heightScale;
+
+    // Interpolate from hero position to horizontal row position
+    const currentX = heroX + (targetX - heroX) * easedProgress;
+    const currentY = heroY + (targetY - heroY) * easedProgress;
+    const currentRotate = heroOffset.rotate * (1 - easedProgress);
 
     return {
-      transform: `translate(-50%, 0) translateX(${currentX}px) translateY(${currentY}px) rotate(${currentRotate}deg)`,
-      zIndex: hero.zIndex,
+      x: currentX,
+      y: currentY,
+      rotate: currentRotate,
+      zIndex: isScrolled ? 1 : heroOffset.zIndex,
     };
   };
 
   return (
     <div
-      className="min-h-[250vh]"
+      className="min-h-[250vh] overflow-x-hidden"
       style={{ background: "var(--color-background)" }}
       onClick={handlePageClick}
     >
+      {/* Nav Bar with Logo */}
+      <NavBar isScrolled={isScrolled} logoRef={logoRef} navOpacity={intro.navOpacity} />
+
       {/* Mascot Physics Overlay */}
       <MascotOverlay
         logoPosition={logoPosition}
@@ -283,97 +382,281 @@ export default function Home() {
         isHeroState={!isScrolled}
         onFlyAwayReady={handleFlyAwayReady}
         onKnockOverReady={handleKnockOverReady}
+        onRespawnReady={handleRespawnReady}
+        onPortalStateChange={handlePortalStateChange}
+        onTriggerLogoAnimation={() => spawnLogoRef.current?.triggerSpawn()}
+        introComplete={intro.isComplete}
       />
 
-      {/* Sticky Header */}
-      <header
-        className="fixed left-0 right-0 z-50 flex justify-center transition-all duration-500 ease-out"
-        style={{
-          top: isScrolled ? "0px" : "180px",
-          paddingTop: isScrolled ? "32px" : "0px",
-          paddingBottom: isScrolled ? "64px" : "0px",
-          background: isScrolled
-            ? "linear-gradient(to bottom, var(--color-background) 0%, var(--color-background) 40%, transparent 100%)"
-            : "transparent",
-        }}
-      >
-        <div ref={logoRef}>
-          <LabsLogo />
+      {/* Intro Animation Logo - centered during animation, then moves to top */}
+      {!intro.isComplete && (
+        <div
+          className="fixed left-1/2 z-40"
+          style={{
+            // Interpolate from center (50vh) to top position (140px to match SpawnLogo)
+            top: `${(windowHeight / 2 - 20) * (1 - intro.logoPositionProgress) + (140 * heightScale) * intro.logoPositionProgress}px`,
+            transform: "translateX(-50%)",
+            opacity: intro.logoOpacity,
+            pointerEvents: "none",
+          }}
+        >
+          <div
+            className="flex items-center gap-1"
+            style={{
+              transform: `scale(${intro.logoScale})`,
+              transformOrigin: "center center",
+            }}
+          >
+            <GlitchText
+              text={intro.displayText}
+              isGlitching={intro.isGlitching}
+              glitchOffset={intro.glitchOffset}
+              className="font-mono text-[26px]"
+              style={{ color: "var(--color-primary)" }}
+            />
+            {intro.showLabs && (
+              <GlitchText
+                text={intro.labsText}
+                isGlitching={intro.isLabsGlitching}
+                glitchOffset={intro.isLabsGlitching ? (Math.random() - 0.5) * 6 : 0}
+                className="font-mono text-[26px]"
+                style={{ color: "var(--color-primary)" }}
+              />
+            )}
+          </div>
         </div>
-      </header>
+      )}
 
-      {/* Hero Section */}
-      <div className="relative h-screen">
+      {/* Animated Logo for after intro is complete - transforms to kaomoji when spawning */}
+      {intro.isComplete && (
+        <div
+          ref={logoRef}
+          className="fixed left-1/2 z-40 transition-all duration-500 ease-out"
+          style={{
+            top: `${140 * heightScale}px`, // Moved down 20px to align better with title
+            transform: "translateX(-50%)",
+            opacity: isScrolled ? 0 : 1,
+            pointerEvents: isScrolled ? "none" : "auto",
+          }}
+        >
+          <SpawnLogo
+            ref={spawnLogoRef}
+            onSpawnReady={handleSpawnAnimationReady}
+          />
+        </div>
+      )}
+
+      {/* Hero Section - contains hero text only */}
+      <div className="relative" style={{ height: `${500 * heightScale}px` }}>
         {/* Hero Text */}
         <div
-          className="absolute left-1/2 w-full text-center transition-all duration-300"
+          className="absolute left-1/2 w-full text-center transition-all duration-300 px-4"
           style={{
-            top: "224px",
-            opacity: 1 - textEasedProgress,
-            transform: `translateX(-50%) translateY(${-textEasedProgress * 100}px)`,
+            top: `${210 * heightScale}px`,
+            opacity: intro.isComplete ? (1 - textEasedProgress) : 1,
+            transform: `translateX(-50%) translateY(${intro.isComplete ? -textEasedProgress * 100 : 0}px)`,
           }}
         >
           <h1
             ref={titleRef}
-            className="font-black text-[72px] leading-tight mb-4"
-            style={{ color: "var(--color-primary)" }}
+            className="font-semibold text-[72px] leading-[1] tracking-[-1.44px] mb-5"
+            style={{
+              color: "var(--color-primary)",
+              opacity: intro.taglineOpacity,
+              transform: `translateY(${intro.taglineTranslateY}px)`,
+            }}
           >
-            Be the first to play
+            be the first to play
+            <br />
+            with what&apos;s next
           </h1>
-          <p className="text-lg" style={{ color: "var(--color-primary)" }}>
-            Early access to what we&apos;re building next.
+          <p
+            className="font-medium text-[30px] leading-normal max-w-[700px] mx-auto"
+            style={{
+              color: "var(--color-primary)",
+              opacity: intro.subtitleOpacity,
+              transform: `translateY(${intro.subtitleTranslateY}px)`,
+            }}
+          >
+            A space dedicated to experimenting with new creative formats before they reach everyone else.
           </p>
-        </div>
-
-        {/* Cards Container */}
-        <div
-          ref={containerRef}
-          className="absolute left-1/2 w-full"
-          style={{
-            top: `calc(100vh - 450px + ${-easedProgress * 100}px)`,
-            transform: "translateX(-50%)",
-          }}
-        >
-          <div className="relative flex justify-center">
-            {experiments.map((experiment, index) => {
-              const style = getCardStyle(experiment.hero, experiment.grid);
-              const staggerDelay = index === 0 ? 0 : index * 0.05;
-              const isBouncing = bouncingCards.has(index);
-              return (
-                <div
-                  key={experiment.title}
-                  ref={(el) => { cardRefs.current[index] = el; }}
-                  className="absolute"
-                  style={{
-                    left: "50%",
-                    ...style,
-                    transition: `transform 0.65s cubic-bezier(0.34, 1.02, 0.4, 1) ${staggerDelay}s`,
-                  }}
-                >
-                  <div
-                    style={{
-                      transform: isBouncing ? "scale(0.97)" : "scale(1)",
-                      transition: "transform 0.1s ease-out",
-                    }}
-                  >
-                    <ExperimentCard
-                      title={experiment.title}
-                      description={experiment.description}
-                      href={experiment.href}
-                      variant={experiment.variant}
-                      tag={experiment.tag}
-                      onHoverStart={() => handleCardHover(index)}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
         </div>
       </div>
 
-      {/* Spacer for scrolling */}
-      <div style={{ height: "100vh" }} />
+      {/* Cards Section - normal document flow */}
+      <div ref={containerRef}>
+          {/* Section Title - appears when scrolled (delayed fade-in) */}
+          <div
+            className="mb-6 px-11 text-center"
+            style={{
+              opacity: sectionTitleEasedProgress,
+              transform: `translateY(${(1 - sectionTitleEasedProgress) * 30}px)`,
+              pointerEvents: sectionTitleEasedProgress < 0.5 ? "none" : "auto",
+            }}
+          >
+            <h2
+              className="font-semibold text-[48px] leading-[1] tracking-[-0.96px] mb-3"
+              style={{ color: "var(--color-on-background)" }}
+            >
+              fresh experiments
+            </h2>
+            <p
+              className="font-medium text-[20px] leading-normal"
+              style={{ color: "var(--color-on-background)" }}
+            >
+              Prototypes we are actively building, testing, and learning from.
+            </p>
+          </div>
+
+          {/* Cards - stacked in hero, horizontal scrollable row when scrolled */}
+          <div
+            className={`${isScrolled ? "overflow-x-auto scrollbar-hide select-none" : "overflow-visible"}`}
+            style={{
+              cursor: isScrolled ? "grab" : "default",
+            }}
+            onMouseDown={(e) => {
+              if (!isScrolled) return;
+              e.preventDefault();
+              const el = e.currentTarget;
+              el.style.cursor = "grabbing";
+
+              const startX = e.clientX;
+              const scrollLeft = el.scrollLeft;
+              let isDragging = false;
+
+              const handleMouseMove = (e: MouseEvent) => {
+                e.preventDefault();
+                isDragging = true;
+                const x = e.clientX;
+                const walk = (startX - x) * 1.2;
+                el.scrollLeft = scrollLeft + walk;
+              };
+
+              const handleMouseUp = () => {
+                el.style.cursor = "grab";
+                document.removeEventListener("mousemove", handleMouseMove);
+                document.removeEventListener("mouseup", handleMouseUp);
+
+                // Prevent click if we were dragging
+                if (isDragging) {
+                  const preventClick = (e: Event) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  };
+                  el.addEventListener("click", preventClick, { capture: true, once: true });
+                }
+              };
+
+              document.addEventListener("mousemove", handleMouseMove);
+              document.addEventListener("mouseup", handleMouseUp);
+            }}
+          >
+            <div
+              className="relative"
+              style={{
+                width: `${44 + experiments.length * CARD_WIDTH + (experiments.length - 1) * CARD_GAP + 44}px`,
+                height: `${CARD_HEIGHT + 40}px`, // Extra height for hover scale
+                paddingTop: "20px", // Padding to prevent clipping on hover
+                paddingBottom: "20px",
+              }}
+            >
+              {experiments.map((experiment, index) => {
+                const cardTransform = getCardTransform(experiment.heroOffset, index);
+                const isBouncing = bouncingCards.has(index);
+                const cardIntroProgress = intro.cardProgress[index] ?? 1;
+
+                // Card entrance animation: start from bottom center, rise up and fan out
+                // When cardIntroProgress is 0: cards at bottom, stacked at center
+                // When cardIntroProgress is 1: cards at their hero positions
+                const introStartY = 800; // Start below viewport
+                const introStartRotate = index === 2 ? 0 : (index < 2 ? 5 : -5); // Start tilted inward
+
+                // Interpolate from intro start to hero position based on cardIntroProgress
+                const effectiveY = intro.isComplete
+                  ? cardTransform.y
+                  : introStartY + (cardTransform.y - introStartY) * cardIntroProgress;
+                const effectiveRotate = intro.isComplete
+                  ? cardTransform.rotate
+                  : introStartRotate + (cardTransform.rotate - introStartRotate) * cardIntroProgress;
+
+                return (
+                  <div
+                    key={experiment.title}
+                    ref={(el) => { cardRefs.current[index] = el; }}
+                    className="absolute"
+                    style={{
+                      left: "44px", // Account for container padding
+                      transform: `translateX(${cardTransform.x}px) translateY(${effectiveY}px) rotate(${effectiveRotate}deg)`,
+                      transition: intro.isComplete ? "transform 0.5s cubic-bezier(0.33, 1, 0.68, 1)" : "none",
+                      zIndex: cardTransform.zIndex,
+                      opacity: cardIntroProgress > 0 ? 1 : 0,
+                    }}
+                  >
+                    <div
+                      style={{
+                        transform: isBouncing ? "scale(0.97)" : "scale(1)",
+                        transition: "transform 0.1s ease-out",
+                      }}
+                    >
+                      <ExperimentCard
+                        title={experiment.title}
+                        description={experiment.description}
+                        href={experiment.href}
+                        variant={experiment.variant}
+                        buttonText={experiment.buttonText}
+                        imageSrc={experiment.imageSrc}
+                        onHoverStart={() => handleCardHover(index)}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* All Experiments Button - appears when scrolled */}
+          <div
+            className="flex justify-center mt-10"
+            style={{
+              opacity: easedProgress,
+              transform: `translateY(${(1 - easedProgress) * 20}px)`,
+              pointerEvents: easedProgress < 0.5 ? "none" : "auto",
+            }}
+          >
+            <a
+              href="/experiments"
+              className="inline-flex items-center gap-2 h-11 px-5 rounded-full border transition-all duration-200 hover:bg-[var(--color-on-background)] hover:text-[var(--color-background)]"
+              style={{
+                borderColor: "var(--color-on-background)",
+                color: "var(--color-on-background)",
+              }}
+            >
+              <span className="font-medium text-base whitespace-nowrap">
+                All Experiments
+              </span>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M4.16667 10H15.8333M15.8333 10L10 4.16667M15.8333 10L10 15.8333"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </a>
+          </div>
+        </div>
+
+      {/* Additional page content can go here */}
+      <div style={{ height: "100vh", padding: "44px" }}>
+        {/* Future content sections */}
+      </div>
     </div>
   );
 }

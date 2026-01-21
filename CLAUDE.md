@@ -1,57 +1,97 @@
-# c.ai Labs - Project Context
+# Cai Labs - Project Context
 
 ## Overview
-A Next.js brand landing page for c.ai Labs featuring an animated parallax hero section with multiple depth layers.
+A Next.js brand landing page for Cai Labs featuring interactive mascot characters with Matter.js physics, animated intro sequences, and experiment cards. Users can click to spawn mascots that bounce around and interact with UI elements.
 
 ## Tech Stack
-- Next.js 14+ with App Router
+- Next.js 16+ with App Router
 - TypeScript
 - Tailwind CSS
-- React hooks for animations
+- Matter.js for physics simulation
+- React hooks for animations and state
 
 ## Key Components
 
-### ParallaxHero (`src/components/ParallaxHero/`)
-The main hero section with 5 depth layers (L1-L5) plus background.
+### MascotLauncher (`src/components/MascotLauncher/`)
+Interactive mascot system with physics-based movement and portal game mechanics.
 
 **Files:**
-- `index.tsx` - Main component orchestrating layers, intro animation, and responsive scaling
-- `useParallax.ts` - Mouse tracking (desktop) and device tilt (mobile) parallax
-- `useIntroAnimation.ts` - Choreographed intro animation timeline
-- `useScrollSnap.ts` - Weighted scroll snapping between sections
-- `useHitMap.ts` - Pixel-perfect hover detection using alpha channels
-- `ShuffleText.tsx` - Animated text scramble effect
-- `layers.ts` - Layer configuration (positions, speeds, z-indices)
+- `MascotOverlay.tsx` - Main overlay managing mascot spawning, physics bodies for cards, drag interactions, and portal game
+- `ExpressiveMascot.tsx` - Individual mascot renderer with eye tracking, states (flying, standing, dragging, birthing), and consume animations
+- `Mascot.tsx` - Legacy mascot component with type definitions
 
-**Layer System:**
-- Base container: 1920x1080px
-- Background: Static, fills viewport
-- L5 (furthest): speed 0.02, z-index 1
-- L4: speed 0.04, z-index 2
-- L3: speed 0.06, z-index 3
-- L2: speed 0.10, z-index 4
-- L1 (closest): speed 0.15, z-index 5 (renders above text)
+**Mascot States:**
+- `birthing` - Initial spawn animation from logo
+- `flying` - In motion, affected by physics
+- `standing` - Landed on a card, static
+- `hanging` - Attached to letter anchors (unused currently)
+- `dragging` - Being dragged by user
 
-**Dynamic Viewport Scaling:**
-- Desktop: Elements spread/contract with 30% dampened scaling based on viewport size
-- Mobile (<768px): Fixed 0.75 scale with tilt-based parallax via DeviceOrientationEvent
-- Background always fills viewport (scales up for larger screens)
+### Portal Game (`src/hooks/usePortalGame.ts`)
+When user drags a mascot, a portal spawns asking for 2-5 sacrifices. Features:
+- Gravity pull effect when mascots are near (280px radius)
+- Warp visual effect during drag
+- Success animation when target reached
+- Idle timeout (8s) unless actively dragging
 
-**Intro Animation Timeline:**
-1. Logo shuffle on black (0-2.3s)
-2. Background reveal (2.3-3.1s)
-3. Layers fall in sequence L5→L1 (3.2-4.4s)
-4. Logo shrinks, text fades in with upward motion (4.2-5.4s)
+### Physics System (`src/lib/physics/`, `src/hooks/usePhysicsEngine.ts`)
+- Matter.js engine with custom update loop
+- Static bodies created for experiment cards (with rotation support)
+- Mascot bodies with bounce, friction, and air resistance
+- Collision detection for card hits (triggers bounce animation)
 
-**Scroll Snap:**
-- Threshold-based with damping/resistance
-- Rubber-band effect at boundaries
-- 3 sections total
+### Mascot Spawner (`src/hooks/useMascotSpawner.ts`)
+Manages mascot lifecycle:
+- Spawn from logo with arc trajectories (left clicks → right arcs, right clicks → left arcs)
+- Birth animation (180ms scale-up from logo)
+- Max 30 mascots, oldest removed with fade animation
+- Fly away on scroll (all mascots launch upward, cleared after 1s)
+- Respawn when scrolling back to hero
 
-## Images
-Hero images stored in `public/images/hero/`:
-- `hero-bg.png` - Background
-- `img-1.png` to `img-13.png` - Character layers
+### Home Page (`src/app/page.tsx`)
+Main landing with:
+- Intro animation (logo glitch → cards rise → mascots spawn)
+- Hero state (cards stacked, mascots active) vs scrolled state (cards horizontal scroll)
+- SpawnLogo kaomoji animation on click/auto-spawn
+- Experiment cards with color variants and hover effects
+
+### Experiment Cards (`src/components/ExperimentCard.tsx`)
+- 5 experiments: Podcasts, Comics, Streams, Image Studio, Books
+- Color variants: lime, lavender, butter, rose, sky (light/dark)
+- Hover triggers mascot knock-over on that card
+- Images in `public/experiments/`
+
+### Intro Animation (`src/hooks/useHomeIntro.ts`)
+Choreographed sequence:
+1. "cai" typed with glitch effect
+2. "labs" appears
+3. Logo moves to top, scales down
+4. Cards rise from bottom with stagger
+5. Mascots auto-spawn with logo animation
+
+## Key Behaviors
+
+### Mascot Spawning
+- Click anywhere in hero → logo animates to kaomoji → mascot launches in arc opposite to click
+- Initial 5 mascots spawn with 300-450ms delays after intro
+- Respawn 5 mascots when scrolling back to hero (500ms delay)
+
+### Portal Mechanics
+- Drag mascot → portal appears
+- Mascots pulled toward portal when within 280px
+- Stronger warp effect as mascot approaches (70% max pull)
+- Portal stays active while dragging (no idle timeout)
+- 2-5 mascots required for success
+
+### Scroll Behavior
+- Scroll down >50px → fly away all mascots, transition to horizontal card scroll
+- Scroll back to top → respawn mascots after delay
+- Cards transition from stacked fan to horizontal row
+
+## Z-Index Hierarchy
+- 60: MascotOverlay container
+- 65: Portal
+- 70: Mascot being consumed (during portal animation)
 
 ## Development
 ```bash
@@ -61,8 +101,8 @@ npm run lint   # Run ESLint
 ```
 
 ## Notes
-- Reduced motion preference respected throughout
-- iOS 13+ requires permission for device orientation (requested on first tap)
-- Hit detection uses morphological dilation for smoother edges
-- Press Shift+R to replay intro animation (dev only)
-- Press ESC or click to skip intro
+- Reduced motion preference respected
+- Cards' physics bodies created 600ms after intro (wait for entrance animation)
+- ESC or click skips intro
+- Portal blocks new mascot spawns (prevents spawn on drop)
+- Mascot images in `public/mascots/` with expressive variants

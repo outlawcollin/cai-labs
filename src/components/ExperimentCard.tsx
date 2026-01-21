@@ -4,7 +4,20 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
-type ColorVariant = "primary" | "secondary" | "tertiary" | "warning" | "error";
+// New color variants based on Figma design
+// Light variants: light background with dark text and outline button
+// Dark variants: dark background with white text and filled black button
+type ColorVariant =
+  | "lime-light"
+  | "lime-dark"
+  | "lavender-light"
+  | "lavender-dark"
+  | "butter-light"
+  | "butter-dark"
+  | "rose-light"
+  | "rose-dark"
+  | "sky-light"
+  | "sky-dark";
 
 interface ExperimentCardProps {
   title: string;
@@ -18,74 +31,100 @@ interface ExperimentCardProps {
   onHoverStart?: () => void;
 }
 
-const variantStyles: Record<
-  ColorVariant,
-  {
-    container: string;
-    containerHover: string;
-    title: string;
-    titleHover: string;
-    tag: string;
-    tagHover: string;
-    tagText: string;
-    tagTextHover: string;
-    buttonBorder: string;
-  }
-> = {
-  primary: {
-    container: "var(--color-primary-container)",
-    containerHover: "var(--color-primary)",
-    title: "var(--color-on-primary-container)",
-    titleHover: "var(--color-on-primary)",
-    tag: "var(--color-primary)",
-    tagHover: "var(--color-on-primary)",
-    tagText: "var(--color-on-primary)",
-    tagTextHover: "var(--color-on-primary-container)",
-    buttonBorder: "var(--color-primary)",
+interface VariantStyle {
+  background: string;
+  backgroundHover: string;
+  text: string;
+  textHover: string;
+  buttonStyle: "outline" | "filled";
+  buttonBorder: string;
+}
+
+const variantStyles: Record<ColorVariant, VariantStyle> = {
+  // Lime variants
+  "lime-light": {
+    background: "var(--color-wired-lime)",
+    backgroundHover: "var(--color-midnight-forest)",
+    text: "var(--color-brand-pure-black)",
+    textHover: "var(--color-brand-pure-white)",
+    buttonStyle: "outline",
+    buttonBorder: "var(--color-midnight-forest)",
   },
-  secondary: {
-    container: "var(--color-secondary-container)",
-    containerHover: "var(--color-secondary)",
-    title: "var(--color-on-secondary-container)",
-    titleHover: "var(--color-on-secondary)",
-    tag: "var(--color-secondary)",
-    tagHover: "var(--color-on-secondary)",
-    tagText: "var(--color-on-secondary)",
-    tagTextHover: "var(--color-on-secondary-container)",
-    buttonBorder: "var(--color-secondary)",
+  "lime-dark": {
+    background: "var(--color-midnight-forest)",
+    backgroundHover: "var(--color-wired-lime)",
+    text: "var(--color-brand-pure-white)",
+    textHover: "var(--color-brand-pure-black)",
+    buttonStyle: "filled",
+    buttonBorder: "var(--color-brand-pure-black)",
   },
-  tertiary: {
-    container: "var(--color-tertiary-container)",
-    containerHover: "var(--color-tertiary)",
-    title: "var(--color-on-tertiary-container)",
-    titleHover: "var(--color-on-tertiary)",
-    tag: "var(--color-tertiary)",
-    tagHover: "var(--color-on-tertiary)",
-    tagText: "var(--color-on-tertiary)",
-    tagTextHover: "var(--color-on-tertiary-container)",
-    buttonBorder: "var(--color-tertiary)",
+  // Lavender variants
+  "lavender-light": {
+    background: "var(--color-lowkey-lavender)",
+    backgroundHover: "var(--color-alt-violet)",
+    text: "var(--color-brand-pure-black)",
+    textHover: "var(--color-brand-pure-white)",
+    buttonStyle: "outline",
+    buttonBorder: "var(--color-alt-violet)",
   },
-  warning: {
-    container: "var(--color-warning-container)",
-    containerHover: "var(--color-warning)",
-    title: "var(--color-on-warning-container)",
-    titleHover: "var(--color-on-warning)",
-    tag: "var(--color-warning)",
-    tagHover: "var(--color-on-warning)",
-    tagText: "var(--color-on-warning)",
-    tagTextHover: "var(--color-on-warning-container)",
-    buttonBorder: "var(--color-warning)",
+  "lavender-dark": {
+    background: "var(--color-alt-violet)",
+    backgroundHover: "var(--color-lowkey-lavender)",
+    text: "var(--color-brand-pure-white)",
+    textHover: "var(--color-brand-pure-black)",
+    buttonStyle: "filled",
+    buttonBorder: "var(--color-brand-pure-black)",
   },
-  error: {
-    container: "var(--color-error-container)",
-    containerHover: "var(--color-error)",
-    title: "var(--color-on-error-container)",
-    titleHover: "var(--color-on-error)",
-    tag: "var(--color-error)",
-    tagHover: "var(--color-on-error)",
-    tagText: "var(--color-on-error)",
-    tagTextHover: "var(--color-on-error-container)",
-    buttonBorder: "var(--color-error)",
+  // Butter variants
+  "butter-light": {
+    background: "var(--color-slippery-butter)",
+    backgroundHover: "var(--color-toasty-amber)",
+    text: "var(--color-brand-pure-black)",
+    textHover: "var(--color-brand-pure-white)",
+    buttonStyle: "outline",
+    buttonBorder: "var(--color-toasty-amber)",
+  },
+  "butter-dark": {
+    background: "var(--color-toasty-amber)",
+    backgroundHover: "var(--color-slippery-butter)",
+    text: "var(--color-brand-pure-white)",
+    textHover: "var(--color-brand-pure-black)",
+    buttonStyle: "filled",
+    buttonBorder: "var(--color-brand-pure-black)",
+  },
+  // Rose variants
+  "rose-light": {
+    background: "var(--color-irl-rose)",
+    backgroundHover: "var(--color-hyperlink-magenta)",
+    text: "var(--color-brand-pure-black)",
+    textHover: "var(--color-brand-pure-white)",
+    buttonStyle: "outline",
+    buttonBorder: "var(--color-hyperlink-magenta)",
+  },
+  "rose-dark": {
+    background: "var(--color-hyperlink-magenta)",
+    backgroundHover: "var(--color-irl-rose)",
+    text: "var(--color-brand-pure-white)",
+    textHover: "var(--color-brand-pure-black)",
+    buttonStyle: "filled",
+    buttonBorder: "var(--color-brand-pure-black)",
+  },
+  // Sky variants
+  "sky-light": {
+    background: "var(--color-icy-sky)",
+    backgroundHover: "var(--color-default-blue)",
+    text: "var(--color-brand-pure-black)",
+    textHover: "var(--color-brand-pure-white)",
+    buttonStyle: "outline",
+    buttonBorder: "var(--color-default-blue)",
+  },
+  "sky-dark": {
+    background: "var(--color-default-blue)",
+    backgroundHover: "var(--color-icy-sky)",
+    text: "var(--color-brand-pure-white)",
+    textHover: "var(--color-brand-pure-black)",
+    buttonStyle: "filled",
+    buttonBorder: "var(--color-brand-pure-black)",
   },
 };
 
@@ -93,7 +132,7 @@ export function ExperimentCard({
   title,
   description,
   href,
-  variant = "primary",
+  variant = "lime-light",
   tag,
   buttonText = "Try Now",
   imageSrc = "/placeholder.svg",
@@ -103,12 +142,37 @@ export function ExperimentCard({
   const [isHovered, setIsHovered] = useState(false);
   const styles = variantStyles[variant];
 
+  // Determine button appearance based on variant and hover state
+  const isFilledButton = styles.buttonStyle === "filled";
+  const buttonBackground = isHovered
+    ? isFilledButton
+      ? "transparent"
+      : "var(--color-brand-pure-black)"
+    : isFilledButton
+      ? "var(--color-brand-pure-black)"
+      : "transparent";
+  const buttonBorderColor = isHovered
+    ? isFilledButton
+      ? "var(--color-brand-pure-black)"
+      : "transparent"
+    : isFilledButton
+      ? "transparent"
+      : styles.buttonBorder;
+  const buttonTextColor = isHovered
+    ? isFilledButton
+      ? "var(--color-brand-pure-black)"
+      : "var(--color-brand-pure-white)"
+    : isFilledButton
+      ? "var(--color-brand-pure-white)"
+      : "var(--color-brand-pure-black)";
+
   return (
     <Link
       href={href}
-      className="flex flex-col gap-4 w-[420px] h-[580px] p-3 rounded-3xl overflow-hidden"
+      draggable={false}
+      className="flex flex-col gap-4 w-[420px] h-[640px] pt-2 pb-3 px-3 rounded-3xl overflow-hidden"
       style={{
-        backgroundColor: isHovered ? styles.containerHover : styles.container,
+        backgroundColor: isHovered ? styles.backgroundHover : styles.background,
         transform: isHovered ? "scale(1.02)" : "scale(1)",
         transition: "transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s ease-out",
       }}
@@ -117,25 +181,30 @@ export function ExperimentCard({
         onHoverStart?.();
       }}
       onMouseLeave={() => setIsHovered(false)}
+      onDragStart={(e) => e.preventDefault()}
     >
       {/* Top Container */}
       <div className="flex flex-col gap-4 flex-1">
         {/* Title Container */}
         <div className="flex items-start gap-2">
           <h2
-            className="flex-1 font-bold text-[62px] leading-[60px] tracking-tight transition-colors duration-200"
-            style={{ color: isHovered ? styles.titleHover : styles.title }}
+            className="flex-1 font-semibold text-[48px] leading-[50px] tracking-[-0.96px] lowercase transition-colors duration-200"
+            style={{ color: isHovered ? styles.textHover : styles.text }}
           >
             {title}
           </h2>
           {tag && (
             <div
               className="px-1.5 py-1 rounded transition-colors duration-200 flex items-center"
-              style={{ backgroundColor: isHovered ? styles.tagHover : styles.tag }}
+              style={{
+                backgroundColor: isHovered ? styles.textHover : styles.text,
+              }}
             >
               <span
                 className="font-mono text-[10px] uppercase leading-none transition-colors duration-200"
-                style={{ color: isHovered ? styles.tagTextHover : styles.tagText }}
+                style={{
+                  color: isHovered ? styles.backgroundHover : styles.background,
+                }}
               >
                 {tag}
               </span>
@@ -145,8 +214,8 @@ export function ExperimentCard({
 
         {/* Description */}
         <p
-          className="font-medium text-sm transition-colors duration-200"
-          style={{ color: isHovered ? styles.titleHover : "var(--color-on-surface)" }}
+          className="font-medium text-[16px] leading-[22px] transition-colors duration-200"
+          style={{ color: isHovered ? styles.textHover : styles.text }}
         >
           {description}
         </p>
@@ -154,21 +223,21 @@ export function ExperimentCard({
         {/* Button Container - pushes to bottom */}
         <div className="flex-1 flex flex-col justify-end items-start">
           <div
-            className="inline-flex items-center gap-2 h-11 px-5 rounded-full border transition-colors duration-200"
+            className="inline-flex items-center gap-2 h-11 px-5 rounded-full border transition-all duration-200"
             style={{
-              borderColor: isHovered ? "transparent" : styles.buttonBorder,
-              backgroundColor: isHovered ? "var(--color-inverse-surface)" : "transparent",
+              borderColor: buttonBorderColor,
+              backgroundColor: buttonBackground,
             }}
           >
             <span
               className="font-medium text-base whitespace-nowrap transition-colors duration-200"
-              style={{ color: isHovered ? "var(--color-inverse-on-surface)" : "var(--color-on-surface)" }}
+              style={{ color: buttonTextColor }}
             >
               {buttonText}
             </span>
             <ArrowRightIcon
               className="transition-colors duration-200"
-              style={{ color: isHovered ? "var(--color-inverse-on-surface)" : "var(--color-on-surface)" }}
+              style={{ color: buttonTextColor }}
             />
           </div>
         </div>

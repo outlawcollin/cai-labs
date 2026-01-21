@@ -25,12 +25,12 @@ const DILATION_RADIUS = 2;
  * This fills in small gaps and makes edges less glitchy
  */
 function dilateGrid(
-  grid: Uint8Array,
+  grid: Uint8Array<ArrayBuffer>,
   gridWidth: number,
   gridHeight: number,
   radius: number
-): Uint8Array {
-  const dilated = new Uint8Array(grid.length);
+): Uint8Array<ArrayBuffer> {
+  const dilated = new Uint8Array(grid.length) as Uint8Array<ArrayBuffer>;
 
   for (let gy = 0; gy < gridHeight; gy++) {
     for (let gx = 0; gx < gridWidth; gx++) {
