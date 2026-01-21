@@ -1,12 +1,61 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import Image from "next/image";
 import { useParallax } from "./useParallax";
 import { useIntroAnimation } from "./useIntroAnimation";
 import { useHitMap } from "./useHitMap";
 import { ShuffleText } from "./ShuffleText";
 import { layers, CONTAINER_WIDTH, CONTAINER_HEIGHT, ImageConfig } from "./layers";
+
+// Calculate dynamic scale factor for layer positions
+// This creates a dampened scaling effect - elements spread out on larger screens
+// and come closer on smaller screens, but not proportionally to avoid overlap
+function calculateDynamicScale(
+  viewportWidth: number,
+  viewportHeight: number,
+  isMobile: boolean
+): { scaleX: number; scaleY: number; containerScale: number } {
+  const baseWidth = CONTAINER_WIDTH; // 1920
+  const baseHeight = CONTAINER_HEIGHT; // 1080
+
+  if (isMobile) {
+    // On mobile, use a fixed scale that fits content well
+    // and adjust based on viewport aspect ratio
+    const heightScale = viewportHeight / baseHeight;
+    const widthScale = viewportWidth / baseWidth;
+
+    // Use whichever dimension is larger to ensure coverage
+    const containerScale = Math.max(heightScale, widthScale) * 0.75;
+
+    return {
+      scaleX: 1,
+      scaleY: 1,
+      containerScale,
+    };
+  }
+
+  // Desktop: calculate dampened scaling for element positions
+  const widthRatio = viewportWidth / baseWidth;
+  const heightRatio = viewportHeight / baseHeight;
+
+  // Dampening factor: 0.3 means elements move 30% of what they would with direct scaling
+  const dampeningFactor = 0.3;
+
+  // Calculate how far from 1.0 the ratio is, then dampen it
+  const scaleX = 1 + (widthRatio - 1) * dampeningFactor;
+  const scaleY = 1 + (heightRatio - 1) * dampeningFactor;
+
+  // Container scale ensures the background fills the viewport on larger screens
+  // Use the larger ratio to ensure no black bars appear
+  const containerScale = Math.max(widthRatio, heightRatio);
+
+  return {
+    scaleX: Math.max(0.7, Math.min(1.4, scaleX)), // Clamp between 0.7 and 1.4
+    scaleY: Math.max(0.7, Math.min(1.4, scaleY)),
+    containerScale: Math.max(1, containerScale), // Never scale down below 1
+  };
+}
 
 // Determine transform origin based on image position in the frame
 function getTransformOrigin(img: ImageConfig): string {
@@ -155,19 +204,50 @@ export function ParallaxHero({ scrollProgress = 0, onIntroComplete }: ParallaxHe
   const [showVideo, setShowVideo] = useState(false);
   const [videoError, setVideoError] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [viewportSize, setViewportSize] = useState({ width: 1920, height: 1080 });
 
-  // Detect mobile viewport
+  // Detect mobile viewport and track viewport size
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+    const updateViewport = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      setIsMobile(width < 768);
+      setViewportSize({ width, height });
     };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    updateViewport();
+    window.addEventListener("resize", updateViewport);
+    return () => window.removeEventListener("resize", updateViewport);
   }, []);
 
-  // Mobile scale factor to bring elements closer to center
-  const mobileScale = isMobile ? 0.65 : 1;
+  // Calculate dynamic scaling factors
+  const dynamicScale = useMemo(
+    () => calculateDynamicScale(viewportSize.width, viewportSize.height, isMobile),
+    [viewportSize.width, viewportSize.height, isMobile]
+  );
+
+  // Helper to calculate dynamically scaled position
+  const getScaledPosition = useCallback(
+    (x: number, y: number) => {
+      // Calculate offset from center of the base container
+      const centerX = CONTAINER_WIDTH / 2;
+      const centerY = CONTAINER_HEIGHT / 2;
+
+      // Distance from center
+      const offsetX = x - centerX;
+      const offsetY = y - centerY;
+
+      // Apply dampened scaling to the offset
+      const scaledOffsetX = offsetX * dynamicScale.scaleX;
+      const scaledOffsetY = offsetY * dynamicScale.scaleY;
+
+      // Return new position relative to center
+      return {
+        x: centerX + scaledOffsetX,
+        y: centerY + scaledOffsetY,
+      };
+    },
+    [dynamicScale.scaleX, dynamicScale.scaleY]
+  );
 
   // Intro animation orchestration
   const {
@@ -297,39 +377,62 @@ export function ParallaxHero({ scrollProgress = 0, onIntroComplete }: ParallaxHe
               willChange: layer.speed > 0 ? "transform" : undefined,
             }}
           >
-            <div
-              className="absolute left-1/2 top-1/2"
-              style={{
-                width: CONTAINER_WIDTH,
-                height: CONTAINER_HEIGHT,
-                transform: `translate(-50%, -50%) scale(${mobileScale})`,
-              }}
-            >
-              {layer.images.map((img, imgIndex) => (
-                <div
-                  key={`${layer.id}-${imgIndex}`}
-                  className="absolute"
-                  style={{
-                    left: img.x,
-                    top: img.y,
-                    width: img.width,
-                    height: img.height,
-                  }}
-                >
+            {isMobile ? (
+              // Mobile: Background fills the entire viewport
+              <div className="absolute inset-0">
+                {layer.images.map((img, imgIndex) => (
                   <Image
+                    key={`${layer.id}-${imgIndex}`}
                     src={img.src}
                     alt=""
-                    width={img.width}
-                    height={img.height}
+                    fill
                     className="object-cover select-none"
                     style={{ userSelect: "none", WebkitUserDrag: "none" } as React.CSSProperties}
                     draggable={false}
                     priority
                     quality={90}
                   />
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              // Desktop: Use container-based positioning with dynamic scaling
+              <div
+                className="absolute left-1/2 top-1/2"
+                style={{
+                  width: CONTAINER_WIDTH,
+                  height: CONTAINER_HEIGHT,
+                  transform: `translate(-50%, -50%) scale(${dynamicScale.containerScale})`,
+                }}
+              >
+                {layer.images.map((img, imgIndex) => {
+                  const scaledPos = getScaledPosition(img.x, img.y);
+                  return (
+                    <div
+                      key={`${layer.id}-${imgIndex}`}
+                      className="absolute"
+                      style={{
+                        left: scaledPos.x,
+                        top: scaledPos.y,
+                        width: img.width,
+                        height: img.height,
+                      }}
+                    >
+                      <Image
+                        src={img.src}
+                        alt=""
+                        width={img.width}
+                        height={img.height}
+                        className="object-cover select-none"
+                        style={{ userSelect: "none", WebkitUserDrag: "none" } as React.CSSProperties}
+                        draggable={false}
+                        priority
+                        quality={90}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         ))}
 
@@ -375,17 +478,25 @@ export function ParallaxHero({ scrollProgress = 0, onIntroComplete }: ParallaxHe
               style={{
                 width: CONTAINER_WIDTH,
                 height: CONTAINER_HEIGHT,
-                transform: `translate(-50%, -50%) scale(${mobileScale})`,
+                transform: `translate(-50%, -50%) scale(${dynamicScale.containerScale})`,
               }}
             >
-              {layer.images.map((img, imgIndex) => (
-                <HoverableImage
-                  key={`${layer.id}-${imgIndex}`}
-                  img={img}
-                  priority={layer.id === "L5" || layer.id === "L4"}
-                  reducedMotion={reducedMotion}
-                />
-              ))}
+              {layer.images.map((img, imgIndex) => {
+                const scaledPos = getScaledPosition(img.x, img.y);
+                const scaledImg = {
+                  ...img,
+                  x: scaledPos.x,
+                  y: scaledPos.y,
+                };
+                return (
+                  <HoverableImage
+                    key={`${layer.id}-${imgIndex}`}
+                    img={scaledImg}
+                    priority={layer.id === "L5" || layer.id === "L4"}
+                    reducedMotion={reducedMotion}
+                  />
+                );
+              })}
             </div>
           </div>
         );
@@ -481,17 +592,25 @@ export function ParallaxHero({ scrollProgress = 0, onIntroComplete }: ParallaxHe
                 style={{
                   width: CONTAINER_WIDTH,
                   height: CONTAINER_HEIGHT,
-                  transform: `translate(-50%, -50%) scale(${mobileScale})`,
+                  transform: `translate(-50%, -50%) scale(${dynamicScale.containerScale})`,
                 }}
               >
-                {layer.images.map((img, imgIndex) => (
-                  <HoverableImage
-                    key={`${layer.id}-${imgIndex}`}
-                    img={img}
-                    priority={false}
-                    reducedMotion={reducedMotion}
-                  />
-                ))}
+                {layer.images.map((img, imgIndex) => {
+                  const scaledPos = getScaledPosition(img.x, img.y);
+                  const scaledImg = {
+                    ...img,
+                    x: scaledPos.x,
+                    y: scaledPos.y,
+                  };
+                  return (
+                    <HoverableImage
+                      key={`${layer.id}-${imgIndex}`}
+                      img={scaledImg}
+                      priority={false}
+                      reducedMotion={reducedMotion}
+                    />
+                  );
+                })}
               </div>
             </div>
           );
