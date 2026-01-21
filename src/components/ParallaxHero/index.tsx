@@ -135,7 +135,9 @@ function HoverableImage({
         alt=""
         width={img.width}
         height={img.height}
-        className="object-cover pointer-events-none"
+        className="object-cover pointer-events-none select-none"
+        style={{ userSelect: "none", WebkitUserDrag: "none" } as React.CSSProperties}
+        draggable={false}
         priority={priority}
         quality={90}
       />
@@ -160,7 +162,9 @@ export function ParallaxHero({ scrollProgress = 0, onIntroComplete }: ParallaxHe
     blackOverlayOpacity,
     logo,
     taglineOpacity,
+    taglineTranslateY,
     subtitleOpacity,
+    subtitleTranslateY,
     isComplete: introComplete,
     skipIntro,
     resetAnimation,
@@ -303,7 +307,9 @@ export function ParallaxHero({ scrollProgress = 0, onIntroComplete }: ParallaxHe
                     alt=""
                     width={img.width}
                     height={img.height}
-                    className="object-cover"
+                    className="object-cover select-none"
+                    style={{ userSelect: "none", WebkitUserDrag: "none" } as React.CSSProperties}
+                    draggable={false}
                     priority
                     quality={90}
                   />
@@ -403,13 +409,14 @@ export function ParallaxHero({ scrollProgress = 0, onIntroComplete }: ParallaxHe
             </div>
           </div>
 
-          {/* Title - Simple fade in at final position, no movement */}
+          {/* Title - Fades in with subtle upward motion */}
           <h1
             className="font-semibold text-[72px] leading-[1.1] mb-6"
             style={{
               color: "#ffffff",
               fontFamily: "var(--font-sans)",
               opacity: taglineOpacity,
+              transform: `translateY(${taglineTranslateY}px)`,
               visibility: taglineOpacity > 0 ? "visible" : "hidden",
               transition: "none", // Animation controlled by hook
             }}
@@ -419,13 +426,14 @@ export function ParallaxHero({ scrollProgress = 0, onIntroComplete }: ParallaxHe
             strong opinions welcome.
           </h1>
 
-          {/* Subtitle - Simple fade in at final position, no movement */}
+          {/* Subtitle - Fades in with subtle upward motion */}
           <p
             className="font-medium text-[30px] leading-[1.4] max-w-3xl mx-auto"
             style={{
               color: "rgba(255, 255, 255, 0.8)",
               fontFamily: "var(--font-sans)",
               opacity: subtitleOpacity,
+              transform: `translateY(${subtitleTranslateY}px)`,
               visibility: subtitleOpacity > 0 ? "visible" : "hidden",
               transition: "none",
             }}

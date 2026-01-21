@@ -20,15 +20,14 @@ const TIMELINE = {
   L2Start: 3650,
   L1Start: 3800, // L1 (closest/foreground) falls last
 
-  // Phase 4: Logo shrinks AND text fades in TOGETHER
-  // This prevents overlap - everything moves into place simultaneously
+  // Phase 4: Logo shrinks first, then text fades in with subtle upward motion
   logoTransitionStart: 4200,
   logoTransitionEnd: 4900, // 700ms for smooth shrink
-  taglineStart: 4200, // Starts at same time as logo shrink
-  subtitleStart: 4350, // 150ms stagger after tagline
+  taglineStart: 4500, // Starts 300ms after logo begins shrinking
+  subtitleStart: 4700, // 200ms stagger after tagline
 
   // Complete
-  animationComplete: 5100,
+  animationComplete: 5400,
 };
 
 // Animation duration per layer (gentle fall + settle)
@@ -59,7 +58,9 @@ export interface IntroAnimationState {
   blackOverlayOpacity: number;
   logo: LogoAnimationState;
   taglineOpacity: number;
+  taglineTranslateY: number;
   subtitleOpacity: number;
+  subtitleTranslateY: number;
   isComplete: boolean;
 }
 
@@ -148,7 +149,9 @@ export function useIntroAnimation(options: UseIntroAnimationOptions = {}) {
           positionProgress: 1,
         },
         taglineOpacity: 1,
+        taglineTranslateY: 0,
         subtitleOpacity: 1,
+        subtitleTranslateY: 0,
         isComplete: true,
       };
     }
@@ -177,7 +180,9 @@ export function useIntroAnimation(options: UseIntroAnimationOptions = {}) {
         positionProgress: 0,
       },
       taglineOpacity: 0,
+      taglineTranslateY: 12, // Start slightly below final position
       subtitleOpacity: 0,
+      subtitleTranslateY: 12, // Start slightly below final position
       isComplete: false,
     };
   });
@@ -330,16 +335,26 @@ export function useIntroAnimation(options: UseIntroAnimationOptions = {}) {
       });
 
       // ===== TEXT ANIMATIONS =====
+      // Text fades in with subtle upward motion (12px to 0)
+      const textAnimDuration = 500; // Slightly slower for smoothness
+      const textStartY = 12; // Starting offset in pixels
+
       let taglineOpacity = 0;
+      let taglineTranslateY = textStartY;
       if (elapsed >= TIMELINE.taglineStart) {
         const taglineElapsed = elapsed - TIMELINE.taglineStart;
-        taglineOpacity = Math.min(1, easeOut(taglineElapsed / 400)); // Faster fade
+        const taglineProgress = Math.min(1, taglineElapsed / textAnimDuration);
+        taglineOpacity = easeOut(taglineProgress);
+        taglineTranslateY = textStartY * (1 - easeOut(taglineProgress));
       }
 
       let subtitleOpacity = 0;
+      let subtitleTranslateY = textStartY;
       if (elapsed >= TIMELINE.subtitleStart) {
         const subtitleElapsed = elapsed - TIMELINE.subtitleStart;
-        subtitleOpacity = Math.min(1, easeOut(subtitleElapsed / 400)); // Faster fade
+        const subtitleProgress = Math.min(1, subtitleElapsed / textAnimDuration);
+        subtitleOpacity = easeOut(subtitleProgress);
+        subtitleTranslateY = textStartY * (1 - easeOut(subtitleProgress));
       }
 
       // ===== CHECK COMPLETION =====
@@ -351,7 +366,9 @@ export function useIntroAnimation(options: UseIntroAnimationOptions = {}) {
         blackOverlayOpacity,
         logo,
         taglineOpacity,
+        taglineTranslateY,
         subtitleOpacity,
+        subtitleTranslateY,
         isComplete,
       });
 
@@ -418,7 +435,9 @@ export function useIntroAnimation(options: UseIntroAnimationOptions = {}) {
         positionProgress: 1,
       },
       taglineOpacity: 1,
+      taglineTranslateY: 0,
       subtitleOpacity: 1,
+      subtitleTranslateY: 0,
       isComplete: true,
     });
 
@@ -456,7 +475,9 @@ export function useIntroAnimation(options: UseIntroAnimationOptions = {}) {
         positionProgress: 0,
       },
       taglineOpacity: 0,
+      taglineTranslateY: 12,
       subtitleOpacity: 0,
+      subtitleTranslateY: 12,
       isComplete: false,
     });
 
