@@ -333,9 +333,9 @@ export function ParallaxHero({ scrollProgress = 0, onIntroComplete }: ParallaxHe
         </video>
       )}
 
-      {/* Character Parallax Layers (L5-L1) */}
+      {/* Character Parallax Layers (L5-L2) - Below text */}
       {layers
-        .filter((layer) => layer.id !== "background")
+        .filter((layer) => layer.id !== "background" && layer.id !== "L1")
         .map((layer) => {
           const blur = getLayerBlur(layer.id);
           return (
@@ -437,12 +437,50 @@ export function ParallaxHero({ scrollProgress = 0, onIntroComplete }: ParallaxHe
         </div>
       </div>
 
+      {/* L1 Layer - Above text for overlap effect */}
+      {layers
+        .filter((layer) => layer.id === "L1")
+        .map((layer) => {
+          const blur = getLayerBlur(layer.id);
+          return (
+            <div
+              key={layer.id}
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                zIndex: 102,
+                transform: getLayerTransform(layer.id),
+                opacity: getLayerOpacity(layer.id),
+                filter: blur > 0.1 ? `blur(${blur}px)` : undefined,
+                willChange: "transform, filter",
+              }}
+            >
+              <div
+                className="absolute left-1/2 top-1/2"
+                style={{
+                  width: CONTAINER_WIDTH,
+                  height: CONTAINER_HEIGHT,
+                  transform: "translate(-50%, -50%)",
+                }}
+              >
+                {layer.images.map((img, imgIndex) => (
+                  <HoverableImage
+                    key={`${layer.id}-${imgIndex}`}
+                    img={img}
+                    priority={false}
+                    reducedMotion={reducedMotion}
+                  />
+                ))}
+              </div>
+            </div>
+          );
+        })}
+
       {/* Skip hint - shown during intro */}
       {!introComplete && blackOverlayOpacity < 0.5 && (
         <div
           className="absolute bottom-8 left-1/2 -translate-x-1/2 pointer-events-none"
           style={{
-            zIndex: 102,
+            zIndex: 103,
             opacity: 0.4,
             transition: "opacity 0.3s",
           }}

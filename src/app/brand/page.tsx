@@ -6,7 +6,6 @@ import { useScrollSnap } from "@/components/ParallaxHero/useScrollSnap";
 
 export default function BrandPage() {
   const [introComplete, setIntroComplete] = useState(false);
-  const [showScrollIndicator, setShowScrollIndicator] = useState(false);
   const [viewportHeight, setViewportHeight] = useState(0);
 
   // Update viewport height
@@ -34,23 +33,6 @@ export default function BrandPage() {
     rubberBandDuration: 250,
     enabled: introComplete,
   });
-
-  // Show scroll indicator after intro completes
-  useEffect(() => {
-    if (introComplete) {
-      const timeout = setTimeout(() => {
-        setShowScrollIndicator(true);
-      }, 500);
-      return () => clearTimeout(timeout);
-    }
-  }, [introComplete]);
-
-  // Hide scroll indicator when scrolling starts
-  useEffect(() => {
-    if (currentSection > 0 || isAnimating || Math.abs(displacement) > 20) {
-      setShowScrollIndicator(false);
-    }
-  }, [currentSection, isAnimating, displacement]);
 
   const handleIntroComplete = useCallback(() => {
     setIntroComplete(true);
@@ -141,28 +123,22 @@ export default function BrandPage() {
         style={getSectionStyle(0)}
       >
         <ParallaxHero
-          scrollProgress={currentSection === 0 ? scrollProgress : currentSection > 0 ? 1 : 0}
+          scrollProgress={
+            // During animation from section 0 to 1, use transitionProgress
+            isAnimating && previousSection === 0 && currentSection === 1
+              ? transitionProgress
+              // During animation from section 1 to 0, invert transitionProgress
+              : isAnimating && previousSection === 1 && currentSection === 0
+              ? 1 - transitionProgress
+              // Not animating: use scrollProgress if on section 0, otherwise base on section
+              : currentSection === 0
+              ? scrollProgress
+              : currentSection > 0
+              ? 1
+              : 0
+          }
           onIntroComplete={handleIntroComplete}
         />
-
-        {/* Scroll Indicator */}
-        <div
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 transition-opacity duration-500"
-          style={{ opacity: showScrollIndicator && currentSection === 0 ? 1 : 0 }}
-        >
-          <span
-            className="text-sm font-medium"
-            style={{ color: "rgba(255, 255, 255, 0.6)" }}
-          >
-            Scroll to explore
-          </span>
-          <div className="w-6 h-10 rounded-full border-2 border-white/30 flex items-start justify-center p-1">
-            <div
-              className="w-1.5 h-3 bg-white/60 rounded-full animate-bounce"
-              style={{ animationDuration: "1.5s" }}
-            />
-          </div>
-        </div>
       </section>
 
       {/* Section 2: Placeholder */}

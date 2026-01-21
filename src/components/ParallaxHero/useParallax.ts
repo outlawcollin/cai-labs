@@ -16,13 +16,14 @@ const floatingConfig: Record<string, { freqX: number; freqY: number; freqScale: 
 };
 
 // Scroll parallax offsets per layer (how much Y offset per scroll progress 0-1)
+// More pronounced effect for better visual depth during transitions
 const scrollOffsets: Record<string, number> = {
   background: 0,
-  L5: -30,
-  L4: -60,
-  L3: -100,
-  L2: -160,
-  L1: -240,
+  L5: -50,
+  L4: -100,
+  L3: -170,
+  L2: -280,
+  L1: -400,
 };
 
 export function useParallax(scrollProgress: number = 0) {

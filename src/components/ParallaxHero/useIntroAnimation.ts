@@ -20,23 +20,22 @@ const TIMELINE = {
   L2Start: 3650,
   L1Start: 3800, // L1 (closest/foreground) falls last
 
-  // Phase 4: Text fades in (logo still centered)
-  taglineStart: 4300,
-  subtitleStart: 4500, // 200ms stagger
-
-  // Phase 5: Logo shrinks to final position (after text is visible)
-  logoTransitionStart: 4900,
-  logoTransitionEnd: 5500, // 600ms for smooth shrink
+  // Phase 4: Logo shrinks AND text fades in TOGETHER
+  // This prevents overlap - everything moves into place simultaneously
+  logoTransitionStart: 4200,
+  logoTransitionEnd: 4900, // 700ms for smooth shrink
+  taglineStart: 4200, // Starts at same time as logo shrink
+  subtitleStart: 4350, // 150ms stagger after tagline
 
   // Complete
-  animationComplete: 5700,
+  animationComplete: 5100,
 };
 
 // Animation duration per layer (gentle fall + settle)
 const LAYER_DURATION = 600;
 
 // Logo transition duration
-const LOGO_TRANSITION_DURATION = 600;
+const LOGO_TRANSITION_DURATION = 700;
 
 export interface LayerAnimationState {
   opacity: number;
