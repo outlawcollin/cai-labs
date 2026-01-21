@@ -154,6 +154,20 @@ export function ParallaxHero({ scrollProgress = 0, onIntroComplete }: ParallaxHe
   const { containerRef, transforms, reducedMotion } = useParallax(scrollProgress);
   const [showVideo, setShowVideo] = useState(false);
   const [videoError, setVideoError] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Mobile scale factor to bring elements closer to center
+  const mobileScale = isMobile ? 0.65 : 1;
 
   // Intro animation orchestration
   const {
@@ -288,7 +302,7 @@ export function ParallaxHero({ scrollProgress = 0, onIntroComplete }: ParallaxHe
               style={{
                 width: CONTAINER_WIDTH,
                 height: CONTAINER_HEIGHT,
-                transform: "translate(-50%, -50%)",
+                transform: `translate(-50%, -50%) scale(${mobileScale})`,
               }}
             >
               {layer.images.map((img, imgIndex) => (
@@ -361,7 +375,7 @@ export function ParallaxHero({ scrollProgress = 0, onIntroComplete }: ParallaxHe
               style={{
                 width: CONTAINER_WIDTH,
                 height: CONTAINER_HEIGHT,
-                transform: "translate(-50%, -50%)",
+                transform: `translate(-50%, -50%) scale(${mobileScale})`,
               }}
             >
               {layer.images.map((img, imgIndex) => (
@@ -394,15 +408,15 @@ export function ParallaxHero({ scrollProgress = 0, onIntroComplete }: ParallaxHe
         className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
         style={{ zIndex: 101 }}
       >
-        <div className="text-center px-4">
+        <div className="text-center px-4 sm:px-6">
           {/* Logo - Moves independently during intro transition */}
-          <div className="mb-4" style={getLogoWrapperStyle()}>
+          <div className="mb-2 sm:mb-4" style={getLogoWrapperStyle()}>
             <div style={getLogoStyle()}>
               <ShuffleText
                 text="(c.ai)labs"
                 progress={logo.shuffleProgress}
                 cycleSpeed={80} // Slightly slower for dramatic effect
-                className="font-mono text-[20px]"
+                className="font-mono text-[14px] sm:text-[16px] md:text-[20px]"
                 style={{ color: "rgba(255, 255, 255, 0.9)" }}
                 reducedMotion={reducedMotion}
               />
@@ -411,7 +425,7 @@ export function ParallaxHero({ scrollProgress = 0, onIntroComplete }: ParallaxHe
 
           {/* Title - Fades in with subtle upward motion */}
           <h1
-            className="font-semibold text-[72px] leading-[1.1] mb-6"
+            className="font-semibold text-[28px] sm:text-[42px] md:text-[56px] lg:text-[72px] leading-[1.1] mb-3 sm:mb-6"
             style={{
               color: "#ffffff",
               fontFamily: "var(--font-sans)",
@@ -428,7 +442,7 @@ export function ParallaxHero({ scrollProgress = 0, onIntroComplete }: ParallaxHe
 
           {/* Subtitle - Fades in with subtle upward motion */}
           <p
-            className="font-medium text-[30px] leading-[1.4] max-w-3xl mx-auto"
+            className="font-medium text-[14px] sm:text-[18px] md:text-[24px] lg:text-[30px] leading-[1.4] max-w-3xl mx-auto"
             style={{
               color: "rgba(255, 255, 255, 0.8)",
               fontFamily: "var(--font-sans)",
@@ -467,7 +481,7 @@ export function ParallaxHero({ scrollProgress = 0, onIntroComplete }: ParallaxHe
                 style={{
                   width: CONTAINER_WIDTH,
                   height: CONTAINER_HEIGHT,
-                  transform: "translate(-50%, -50%)",
+                  transform: `translate(-50%, -50%) scale(${mobileScale})`,
                 }}
               >
                 {layer.images.map((img, imgIndex) => (
