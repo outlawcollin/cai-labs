@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useCallback, useState } from "react";
+import { useEffect, useRef, useCallback, useState, memo } from "react";
 import Image from "next/image";
 import { MascotBody } from "@/lib/physics/bodies";
 import { getMascot, isExpressiveMascot, MascotAssets } from "@/lib/mascots/registry";
@@ -28,7 +28,7 @@ interface ExpressiveMascotProps {
   onDragMove?: (x: number, y: number) => void;
 }
 
-export function ExpressiveMascot({
+function ExpressiveMascotComponent({
   mascotData,
   mousePosition,
   isBeingDragged,
@@ -312,11 +312,8 @@ export function ExpressiveMascot({
         Math.abs(y - last.y) > 0.1 ||
         Math.abs(angle - last.angle) > 0.01
       ) {
-        // Apply transform with squash/stretch
-        containerRef.current.style.transform = `
-          translate(${x - MASCOT_SIZE / 2}px, ${y - MASCOT_SIZE / 2}px)
-          rotate(${angle}rad)
-        `;
+        // Apply transform with translate3d for GPU acceleration
+        containerRef.current.style.transform = `translate3d(${x - MASCOT_SIZE / 2}px, ${y - MASCOT_SIZE / 2}px, 0) rotate(${angle}rad)`;
         lastUpdateRef.current = { x, y, angle };
       }
 
@@ -516,5 +513,9 @@ export function ExpressiveMascot({
     </div>
   );
 }
+
+// Memoize to prevent unnecessary re-renders when parent re-renders
+// Uses default shallow comparison so mousePosition updates still trigger re-renders for eye tracking
+export const ExpressiveMascot = memo(ExpressiveMascotComponent);
 
 export default ExpressiveMascot;

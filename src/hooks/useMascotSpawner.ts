@@ -153,6 +153,10 @@ export function useMascotSpawner({ engine, logoPosition, letterAnchors }: Spawne
       Events.on(currentEngine, "collisionStart", collisionStartHandler);
       Events.on(currentEngine, "collisionEnd", collisionEndHandler);
 
+      // Store handlers on mascot for cleanup
+      newMascot.collisionStartHandler = collisionStartHandler;
+      newMascot.collisionEndHandler = collisionEndHandler;
+
       setMascots((prev) => {
         // If at max, mark oldest for removal with animation
         let updated = [...prev, newMascot];
@@ -188,6 +192,14 @@ export function useMascotSpawner({ engine, logoPosition, letterAnchors }: Spawne
           if (timeout) {
             clearTimeout(timeout);
             hangingTimeoutsRef.current.delete(id);
+          }
+
+          // Remove collision event listeners to prevent memory leak
+          if (mascot.collisionStartHandler) {
+            Events.off(engine, "collisionStart", mascot.collisionStartHandler);
+          }
+          if (mascot.collisionEndHandler) {
+            Events.off(engine, "collisionEnd", mascot.collisionEndHandler);
           }
 
           // Remove constraint if hanging
@@ -256,7 +268,8 @@ export function useMascotSpawner({ engine, logoPosition, letterAnchors }: Spawne
       const speed = Math.sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
 
       // Check if mascot has slowed down enough to stand (must be on a card)
-      if (speed < 2) {
+      // Lower threshold = more bounces before settling, feels more fluid
+      if (speed < 1.2) {
         // Make the body static so it stays in place
         Body.setStatic(mascot.body, true);
         // Reset angle to upright
@@ -343,6 +356,14 @@ export function useMascotSpawner({ engine, logoPosition, letterAnchors }: Spawne
 
     // Remove all mascot bodies from physics world
     for (const mascot of mascotsRef.current) {
+      // Remove collision event listeners to prevent memory leak
+      if (mascot.collisionStartHandler) {
+        Events.off(currentEngine, "collisionStart", mascot.collisionStartHandler);
+      }
+      if (mascot.collisionEndHandler) {
+        Events.off(currentEngine, "collisionEnd", mascot.collisionEndHandler);
+      }
+
       World.remove(currentEngine.world, mascot.body);
       if (mascot.hangingConstraint) {
         World.remove(currentEngine.world, mascot.hangingConstraint);

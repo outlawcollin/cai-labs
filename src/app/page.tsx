@@ -3,7 +3,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { ExperimentCard } from "@/components/ExperimentCard";
-import { NavBar } from "@/components/NavBar";
 import { GlitchText } from "@/components/GlitchText";
 import { useHomeIntro } from "@/hooks/useHomeIntro";
 import { SpawnLogo, SpawnLogoHandle } from "@/components/SpawnLogo";
@@ -11,6 +10,7 @@ import { useSpawnQueue } from "@/hooks/useSpawnQueue";
 import { StoriesSection } from "@/components/StoriesSection";
 import { getFeaturedStories } from "@/data/stories";
 import { CommunitySection } from "@/components/CommunitySection";
+import { NavBar } from "@/components/NavBar";
 import { Footer } from "@/components/Footer";
 
 // Dynamic import for physics components to avoid SSR issues
@@ -31,7 +31,7 @@ const experiments = [
     variant: "rose-light" as const,
     buttonText: "Try Podcasts",
     imageSrc: "/experiments/podcasts.png",
-    heroOffset: { rotate: -5, x: -580, y: 120, zIndex: 3 }, // Far left behind
+    heroOffset: { rotate: -5, x: -580, y: 20, zIndex: 3 }, // Far left behind
   },
   {
     title: "turn stories into comics you can continue",
@@ -40,7 +40,7 @@ const experiments = [
     variant: "lime-light" as const,
     buttonText: "Try Comics",
     imageSrc: "/experiments/comics.png",
-    heroOffset: { rotate: -5, x: -380, y: 40, zIndex: 4 }, // Left side behind
+    heroOffset: { rotate: -5, x: -380, y: -60, zIndex: 4 }, // Left side behind
   },
   {
     title: "watch characters act out your ideas",
@@ -49,7 +49,7 @@ const experiments = [
     variant: "butter-light" as const,
     buttonText: "Try Streams",
     imageSrc: "/experiments/streams.png",
-    heroOffset: { rotate: 0, x: 0, y: -50, zIndex: 5 }, // Front center card
+    heroOffset: { rotate: 0, x: 0, y: -150, zIndex: 5 }, // Front center card
   },
   {
     title: "see characters and yourself in new worlds",
@@ -58,7 +58,7 @@ const experiments = [
     variant: "lavender-light" as const,
     buttonText: "Try Image Studio",
     imageSrc: "/experiments/image-studio.png",
-    heroOffset: { rotate: 5, x: 380, y: 40, zIndex: 4 }, // Right side behind
+    heroOffset: { rotate: 5, x: 380, y: -60, zIndex: 4 }, // Right side behind
   },
   {
     title: "step inside books and play the story",
@@ -67,7 +67,7 @@ const experiments = [
     variant: "sky-light" as const,
     buttonText: "Try Books",
     imageSrc: "/experiments/books.png",
-    heroOffset: { rotate: 5, x: 580, y: 120, zIndex: 3 }, // Far right behind
+    heroOffset: { rotate: 5, x: 580, y: 20, zIndex: 3 }, // Far right behind
   },
 ];
 
@@ -78,9 +78,11 @@ const CARD_GAP = 20;
 export default function Home() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [logoScrollY, setLogoScrollY] = useState(0); // Track scroll for logo position interpolation
   const [bouncingCards, setBouncingCards] = useState<Set<number>>(new Set());
   const [windowWidth, setWindowWidth] = useState(1920); // Default for SSR
   const [windowHeight, setWindowHeight] = useState(900); // Default for SSR
+  const [windowMeasured, setWindowMeasured] = useState(false); // Track if we've measured real dimensions
   const containerRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
@@ -256,10 +258,13 @@ export default function Home() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [intro]);
+  }, [intro.isComplete, intro.skipIntro]);
 
   useEffect(() => {
-    const handleScroll = () => {
+    let rafId: number | null = null;
+    let ticking = false;
+
+    const updateScroll = () => {
       const scrollY = window.scrollY;
       lastScrollY.current = scrollY;
 
@@ -277,6 +282,7 @@ export default function Home() {
         1
       );
       setScrollProgress(progress);
+      setLogoScrollY(Math.min(scrollY, 50)); // Cap at 50 for logo transition
 
       const nowScrolled = scrollY > 50;
       setIsScrolled(nowScrolled);
@@ -302,13 +308,25 @@ export default function Home() {
           }
         }, 2000);
       }
+
+      ticking = false;
     };
 
-    window.addEventListener("scroll", handleScroll);
-    handleScroll();
+    const handleScroll = () => {
+      if (!ticking) {
+        rafId = requestAnimationFrame(updateScroll);
+        ticking = true;
+      }
+    };
 
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [intro]);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    updateScroll(); // Initial call
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, [intro.isComplete, intro.skipIntro]);
 
   // Get logo position for mascot spawning
   useEffect(() => {
@@ -325,13 +343,14 @@ export default function Home() {
     updateLogoPosition();
     window.addEventListener("resize", updateLogoPosition);
     return () => window.removeEventListener("resize", updateLogoPosition);
-  }, [isScrolled]);
+  }, [isScrolled, intro.isComplete]); // Also update when intro completes (logoRef becomes available)
 
   // Track window dimensions for card centering and viewport-relative positioning
   useEffect(() => {
     const updateWindowDimensions = () => {
       setWindowWidth(window.innerWidth);
       setWindowHeight(window.innerHeight);
+      setWindowMeasured(true); // Mark that we've measured real dimensions
     };
 
     updateWindowDimensions();
@@ -358,6 +377,12 @@ export default function Home() {
   // Viewport-relative positioning - scale positions based on screen height
   // Reference height is 900px, positions scale proportionally
   const heightScale = windowHeight / 900;
+
+  // Logo position interpolation - smoothly move from hero position to nav position on scroll
+  const heroLogoTop = 165 * heightScale; // Starting position in hero
+  const navLogoTop = 20; // Final position in nav
+  const logoScrollProgress = logoScrollY / 50; // 0→1 over first 50px of scroll
+  const currentLogoTop = heroLogoTop + (navLogoTop - heroLogoTop) * logoScrollProgress;
 
   // Mobile breakpoint detection
   const isMobile = windowWidth < 768;
@@ -403,10 +428,8 @@ export default function Home() {
       style={{ background: "var(--color-background)" }}
       onClick={handlePageClick}
     >
-      {/* Nav Bar with Logo */}
+      {/* Nav Bar */}
       <NavBar
-        isScrolled={isScrolled}
-        logoRef={logoRef}
         navOpacity={intro.navOpacity}
         onMobileMenuChange={setMobileMenuOpen}
       />
@@ -430,13 +453,13 @@ export default function Home() {
       )}
 
       {/* Intro Animation Logo - centered during animation, then moves to top */}
-      {/* Hidden when mobile menu is open */}
-      {!intro.isComplete && !(mobileMenuOpen && isMobile) && (
+      {/* Hidden when mobile menu is open, only show after window dimensions measured to prevent jump */}
+      {!intro.isComplete && !(mobileMenuOpen && isMobile) && windowMeasured && (
         <div
-          className="fixed left-1/2 z-40"
+          className="fixed left-1/2 z-50"
           style={{
-            // Interpolate from center (50vh) to top position (140px to match SpawnLogo)
-            top: `${(windowHeight / 2 - 20) * (1 - intro.logoPositionProgress) + (140 * heightScale) * intro.logoPositionProgress}px`,
+            // Interpolate from center (50vh) to top hero position
+            top: `${(windowHeight / 2 - 20) * (1 - intro.logoPositionProgress) + heroLogoTop * intro.logoPositionProgress}px`,
             transform: "translateX(-50%)",
             opacity: intro.logoOpacity,
             pointerEvents: "none",
@@ -475,11 +498,10 @@ export default function Home() {
       {intro.isComplete && !(mobileMenuOpen && isMobile) && (
         <div
           ref={logoRef}
-          className="fixed left-1/2 z-40 transition-all duration-500 ease-out"
+          className="fixed left-1/2 z-50"
           style={{
-            top: `${140 * heightScale}px`, // Moved down 20px to align better with title
+            top: `${currentLogoTop}px`, // Smoothly interpolates from hero to nav position
             transform: "translateX(-50%)",
-            opacity: isScrolled ? 0 : 1,
             pointerEvents: isScrolled ? "none" : "auto",
           }}
         >
@@ -501,7 +523,7 @@ export default function Home() {
         <div
           className="absolute left-1/2 w-full text-center transition-all duration-300 px-2 md:px-4"
           style={{
-            top: isMobile ? "55%" : `${210 * heightScale}px`,
+            top: isMobile ? "56%" : `${220 * heightScale}px`,
             opacity: intro.isComplete ? (isMobile ? 1 : (1 - textEasedProgress)) : 1,
             transform: isMobile
               ? "translateX(-50%) translateY(-50%)"
@@ -581,14 +603,19 @@ export default function Home() {
                   ref={(el) => { cardRefs.current[index] = el; }}
                   style={{
                     opacity: cardIntroProgress,
-                    transform: `translateY(${(1 - cardIntroProgress) * 50}px)`,
+                    // Use translate3d for GPU acceleration
+                    transform: `translate3d(0, ${(1 - cardIntroProgress) * 50}px, 0)`,
                     transition: intro.isComplete ? "opacity 0.3s ease-out, transform 0.3s ease-out" : "none",
+                    // GPU hints for smoother animation
+                    willChange: intro.isComplete ? "auto" : "transform, opacity",
+                    backfaceVisibility: "hidden",
                   }}
                 >
                   <div
                     style={{
                       transform: isBouncing ? "scale(0.97)" : "scale(1)",
                       transition: "transform 0.1s ease-out",
+                      backfaceVisibility: "hidden",
                     }}
                   >
                     <ExperimentCard
@@ -687,16 +714,21 @@ export default function Home() {
                     className="absolute"
                     style={{
                       left: "44px", // Account for container padding
-                      transform: `translateX(${cardTransform.x}px) translateY(${effectiveY}px) rotate(${effectiveRotate}deg)`,
+                      // Use translate3d for GPU acceleration
+                      transform: `translate3d(${cardTransform.x}px, ${effectiveY}px, 0) rotate(${effectiveRotate}deg)`,
                       transition: intro.isComplete ? "transform 0.5s cubic-bezier(0.33, 1, 0.68, 1)" : "none",
                       zIndex: cardTransform.zIndex,
                       opacity: cardIntroProgress > 0 ? 1 : 0,
+                      // GPU hints for smoother animation
+                      willChange: intro.isComplete ? "auto" : "transform",
+                      backfaceVisibility: "hidden",
                     }}
                   >
                     <div
                       style={{
                         transform: isBouncing ? "scale(0.97)" : "scale(1)",
                         transition: "transform 0.1s ease-out",
+                        backfaceVisibility: "hidden",
                       }}
                     >
                       <ExperimentCard

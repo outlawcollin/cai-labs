@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { LabsLogo } from "@/components/Logo";
-import { RefObject, useState } from "react";
+import { useState } from "react";
 
 const navLinks = [
   { label: "About", href: "/about" },
@@ -51,13 +50,11 @@ function DiscordIcon() {
 }
 
 interface NavBarProps {
-  isScrolled?: boolean;
-  logoRef?: RefObject<HTMLDivElement | null>;
   navOpacity?: number;
   onMobileMenuChange?: (isOpen: boolean) => void;
 }
 
-export function NavBar({ isScrolled = false, logoRef, navOpacity = 1, onMobileMenuChange }: NavBarProps) {
+export function NavBar({ navOpacity = 1, onMobileMenuChange }: NavBarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const textColor = "var(--color-on-surface)";
 
@@ -76,7 +73,7 @@ export function NavBar({ isScrolled = false, logoRef, navOpacity = 1, onMobileMe
     <>
       <nav
         className="fixed left-0 right-0 z-50 flex items-center px-6 md:px-11 py-4 md:py-5 transition-all duration-300"
-        style={{ background: "transparent" }}
+        style={{ backgroundColor: "var(--color-background)" }}
       >
         {/* Hamburger Menu Button - mobile only */}
         <button
@@ -97,7 +94,7 @@ export function NavBar({ isScrolled = false, logoRef, navOpacity = 1, onMobileMe
             <Link
               key={link.label}
               href={link.href}
-              className="font-mono text-lg px-1 py-0.5 rounded-lg hover:opacity-70"
+              className="font-mono text-base px-1 py-0.5 rounded-lg hover:opacity-70"
               style={{
                 color: textColor,
                 transition: "color 300ms ease",
@@ -110,20 +107,6 @@ export function NavBar({ isScrolled = false, logoRef, navOpacity = 1, onMobileMe
 
         {/* Spacer for mobile to push social links to right */}
         <div className="flex-1 md:hidden" />
-
-        {/* Center Logo - positioned relative to viewport center, not nav */}
-        <div
-          ref={logoRef}
-          className="fixed left-1/2 transition-all duration-500 ease-out"
-          style={{
-            top: "20px",
-            opacity: isScrolled ? 1 : 0,
-            transform: `translateX(-50%) translateY(${isScrolled ? 0 : 20}px)`,
-            pointerEvents: isScrolled ? "auto" : "none",
-          }}
-        >
-          <LabsLogo />
-        </div>
 
         {/* Social Links - always visible */}
         <div

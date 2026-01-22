@@ -354,13 +354,25 @@ export function MascotOverlay({ logoPosition, titleRef, cardRefs, onSpawnerReady
       }
     };
 
-    // Update on scroll
+    // Update on scroll with RAF throttle
+    let rafId: number | null = null;
+    let ticking = false;
+
     const handleScroll = () => {
-      requestAnimationFrame(updateStaticBodies);
+      if (!ticking) {
+        rafId = requestAnimationFrame(() => {
+          updateStaticBodies();
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   }, [engine, introComplete, cardRefs]);
 
   // Mark as ready when engine and logo position are available

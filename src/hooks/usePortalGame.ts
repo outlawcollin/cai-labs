@@ -57,6 +57,10 @@ export function usePortalGame({
   const idleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const consumeMascotRef = useRef<(mascotId: string, mascotPosition: { x: number; y: number }) => void>(() => {});
 
+  // Use ref for mascots to avoid recreating callbacks when mascots array changes
+  const mascotsRef = useRef<MascotBody[]>(mascots);
+  mascotsRef.current = mascots;
+
   // Create portal sensor body
   const createPortalSensor = useCallback(
     (x: number, y: number) => {
@@ -147,7 +151,7 @@ export function usePortalGame({
     const consumeThreshold = 60; // Larger threshold for more reliable consumption
     const velocityOverrideThreshold = 120; // Distance at which we override velocity for smooth pull
 
-    mascots.forEach((mascot) => {
+    mascotsRef.current.forEach((mascot) => {
       // Skip if being dragged or being consumed
       if (
         mascot.state === "dragging" ||
@@ -191,7 +195,7 @@ export function usePortalGame({
 
       Body.applyForce(body, body.position, { x: forceX, y: forceY });
     });
-  }, [portalState.active, portalState.position, mascots]);
+  }, [portalState.active, portalState.position]); // Removed mascots - using ref
 
   // Handle mascot entering portal
   const consumeMascot = useCallback(
@@ -204,7 +208,7 @@ export function usePortalGame({
       playSound("portal-consume");
 
       // Find the mascot and completely freeze it at current position
-      const mascot = mascots.find((m) => m.id === mascotId);
+      const mascot = mascotsRef.current.find((m) => m.id === mascotId);
       if (mascot) {
         // Stop all motion first
         Body.setVelocity(mascot.body, { x: 0, y: 0 });
@@ -237,7 +241,7 @@ export function usePortalGame({
         clearTimeout(idleTimeoutRef.current);
       }
     },
-    [mascots]
+    [] // Removed mascots - using ref
   );
 
   // Keep ref updated for use in applyPortalGravity
@@ -331,7 +335,7 @@ export function usePortalGame({
 
         if (portal && mascotBody) {
           const mascotId = mascotBody.label.replace("mascot-", "");
-          const mascot = mascots.find((m) => m.id === mascotId);
+          const mascot = mascotsRef.current.find((m) => m.id === mascotId);
 
           // Skip if mascot is being dragged, already consuming, or not found
           if (
@@ -351,7 +355,7 @@ export function usePortalGame({
     return () => {
       Events.off(engine, "collisionStart", handleCollision);
     };
-  }, [engine, portalState.active, mascots, consumeMascot]);
+  }, [engine, portalState.active, consumeMascot]); // Removed mascots - using ref
 
   // Idle timeout - fade portal if no interaction (but not while dragging)
   useEffect(() => {

@@ -32,6 +32,9 @@ export interface MascotBody {
     forceY: number;
     spin: number;
   };
+  // Event handlers stored for cleanup
+  collisionStartHandler?: (event: Matter.IEventCollision<Matter.Engine>) => void;
+  collisionEndHandler?: (event: Matter.IEventCollision<Matter.Engine>) => void;
 }
 
 export function createMascotBody(
@@ -41,9 +44,9 @@ export function createMascotBody(
   mascotType: number
 ): Matter.Body {
   return Bodies.circle(x, y, 35, {
-    restitution: 0.5, // Medium bouncy
-    friction: 0.1,
-    frictionAir: 0.01,
+    restitution: 0.5, // Moderate bounce - settles faster, avoids rapid micro-bouncing
+    friction: 0.05, // Lower friction for smoother slides
+    frictionAir: 0.005, // Less air resistance - keeps momentum longer
     label: `mascot-${id}`,
     density: 0.001,
     collisionFilter: {
@@ -66,6 +69,8 @@ export function createCardBody(
     angle: angle * (Math.PI / 180),
     label: `card-${id}`,
     chamfer: { radius: 16 },
+    restitution: 0.3, // Lower bounce on cards - prevents rapid micro-bouncing
+    friction: 0.05, // Low friction for smooth deflections
   });
 }
 

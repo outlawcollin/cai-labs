@@ -152,3 +152,35 @@ npm run lint   # Run ESLint
 - ESC or click skips intro
 - Portal blocks new mascot spawns (prevents spawn on drop)
 - Mascot images in `public/mascots/` with expressive variants
+
+---
+
+## Session History (Jan 22, 2026)
+
+### Logo Scroll Animation
+- Implemented fluid logo scroll transition: logo smoothly moves from hero position (165px) to nav position (20px) as user scrolls first 50px
+- Added `logoScrollY` state to track scroll position for interpolation
+- Removed redundant nav logo from NavBar (SpawnLogo handles both states)
+- Fixed logo z-index from `z-40` to `z-50` so it doesn't go under the filled navbar
+
+### Mascot Auto-Spawn Fix
+- Fixed mascots not auto-spawning on page load by adding `intro.isComplete` to the logo position effect dependency array
+- Logo position now updates when intro completes, enabling mascot spawning
+
+### Spawn Click Reliability
+- Removed redundant 450ms cooldown from SpawnLogo (useSpawnQueue already handles throttling)
+- Clicks are now more reliably converted to mascot spawns
+
+### Physics Tuning
+- Reduced mascot restitution: 0.7 → 0.5
+- Reduced card restitution: 0.6 → 0.3
+- Fixes rapid "basketball near ground" micro-bouncing
+
+### NavBar Updates
+- Added background fill: `backgroundColor: "var(--color-background)"`
+- Reduced desktop nav link text size: `text-lg` → `text-base`
+- NavBar fades in with `navOpacity` during intro animation
+
+### Attempted but Reverted
+- Moving NavBar/Footer to layout.tsx with React Context for visibility control - reverted due to complexity
+- Hover color change on nav links using CSS variables - reverted to 70% opacity due to Tailwind/inline style conflicts
