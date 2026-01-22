@@ -8,6 +8,10 @@ import { GlitchText } from "@/components/GlitchText";
 import { useHomeIntro } from "@/hooks/useHomeIntro";
 import { SpawnLogo, SpawnLogoHandle } from "@/components/SpawnLogo";
 import { useSpawnQueue } from "@/hooks/useSpawnQueue";
+import { StoriesSection } from "@/components/StoriesSection";
+import { getFeaturedStories } from "@/data/stories";
+import { CommunitySection } from "@/components/CommunitySection";
+import { Footer } from "@/components/Footer";
 
 // Dynamic import for physics components to avoid SSR issues
 const MascotOverlay = dynamic(
@@ -86,6 +90,8 @@ export default function Home() {
   const flyAwayRef = useRef<(() => void) | null>(null);
   const knockOverRef = useRef<((cardIndex: number, cardRect: DOMRect) => void) | null>(null);
   const bounceTimeoutsRef = useRef<Map<number, NodeJS.Timeout>>(new Map());
+  const hoveredCardRef = useRef<number | null>(null);
+  const hoverGraceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastScrollY = useRef(0);
   const hasTriggeredFlyAway = useRef(false);
   const spawnLogoRef = useRef<SpawnLogoHandle>(null);
@@ -137,10 +143,18 @@ export default function Home() {
 
   // Handle spawn ready callback from SpawnLogo animation
   const handleSpawnAnimationReady = useCallback(() => {
-    // The logo animation burst happened, now spawn the mascot
+    // The logo animation burst happened - delay before spawning mascot
     if (pendingClickRef.current && spawnMascotRef.current) {
-      spawnMascotRef.current(pendingClickRef.current.x, pendingClickRef.current.y);
+      // Store click position and clear pending ref
+      const clickPos = { ...pendingClickRef.current };
       pendingClickRef.current = null;
+
+      // Delay mascot appearance to let logo animation play longer
+      setTimeout(() => {
+        if (spawnMascotRef.current) {
+          spawnMascotRef.current(clickPos.x, clickPos.y);
+        }
+      }, 250);
     }
   }, []);
 
@@ -157,15 +171,33 @@ export default function Home() {
 
   // Handle card hover to knock over mascots
   const handleCardHover = useCallback((cardIndex: number) => {
+    // Track which card is hovered to prevent bounce animation
+    hoveredCardRef.current = cardIndex;
+
+    // Clear any existing grace timeout
+    if (hoverGraceTimeoutRef.current) {
+      clearTimeout(hoverGraceTimeoutRef.current);
+    }
+
     const cardEl = cardRefs.current[cardIndex];
     if (cardEl && knockOverRef.current) {
       const rect = cardEl.getBoundingClientRect();
       knockOverRef.current(cardIndex, rect);
     }
+
+    // Clear hovered card after grace period (600ms allows mascot to settle)
+    hoverGraceTimeoutRef.current = setTimeout(() => {
+      hoveredCardRef.current = null;
+    }, 600);
   }, []);
 
   // Handle card hit from mascot collision
   const handleCardHit = useCallback((cardIndex: number) => {
+    // Skip bounce animation if this card is currently hovered (prevents bobbing during hover)
+    if (hoveredCardRef.current === cardIndex) {
+      return;
+    }
+
     // Clear existing timeout for this card
     const existingTimeout = bounceTimeoutsRef.current.get(cardIndex);
     if (existingTimeout) {
@@ -198,9 +230,6 @@ export default function Home() {
 
     // Only spawn when in hero (pre-scrolled) state
     if (isScrolled) return;
-
-    // Don't spawn if portal is active (prevents spawn on drop)
-    if (portalActiveRef.current) return;
 
     // Don't spawn if clicking on interactive elements
     const target = e.target as HTMLElement;
@@ -265,12 +294,12 @@ export default function Home() {
       if (scrollY < 10 && hasLeftHero.current && hasTriggeredFlyAway.current) {
         hasLeftHero.current = false;
         hasTriggeredFlyAway.current = false;
-        // Add delay before respawning mascots
+        // Add longer delay before respawning mascots (2 seconds feels more natural)
         setTimeout(() => {
           if (respawnMascotsRef.current && window.scrollY < 10) {
             respawnMascotsRef.current();
           }
-        }, 500);
+        }, 2000);
       }
     };
 
@@ -321,8 +350,9 @@ export default function Home() {
   const textEasedProgress = easeOutCubic(textFadeProgress);
 
   // Section title fades in later - starts at 40% scroll, fully visible at 100%
+  // Also hide immediately when back in hero state (not scrolled)
   const sectionTitleProgress = Math.max(0, (scrollProgress - 0.4) / 0.6);
-  const sectionTitleEasedProgress = easeOutCubic(sectionTitleProgress);
+  const sectionTitleEasedProgress = isScrolled ? easeOutCubic(sectionTitleProgress) : 0;
 
   // Viewport-relative positioning - scale positions based on screen height
   // Reference height is 900px, positions scale proportionally
@@ -484,14 +514,17 @@ export default function Home() {
       </div>
 
       {/* Cards Section - normal document flow */}
-      <div ref={containerRef}>
+      <div ref={containerRef} style={{ overflow: "visible" }}>
           {/* Section Title - appears when scrolled (delayed fade-in) */}
           <div
-            className="mb-6 px-11 text-center"
+            className="mb-6 px-11 text-center relative"
             style={{
               opacity: sectionTitleEasedProgress,
               transform: `translateY(${(1 - sectionTitleEasedProgress) * 30}px)`,
               pointerEvents: sectionTitleEasedProgress < 0.5 ? "none" : "auto",
+              visibility: sectionTitleEasedProgress === 0 ? "hidden" : "visible",
+              transition: isScrolled ? "opacity 0.3s ease-out, transform 0.3s ease-out" : "none",
+              zIndex: 10,
             }}
           >
             <h2
@@ -555,9 +588,9 @@ export default function Home() {
               className="relative"
               style={{
                 width: `${44 + experiments.length * CARD_WIDTH + (experiments.length - 1) * CARD_GAP + 44}px`,
-                height: `${CARD_HEIGHT + 40}px`, // Extra height for hover scale
-                paddingTop: "20px", // Padding to prevent clipping on hover
-                paddingBottom: "20px",
+                height: `${CARD_HEIGHT + 180}px`, // Extra height for hover scale and hero transforms
+                paddingTop: "120px", // More padding to prevent clipping during transitions
+                paddingBottom: "40px",
               }}
             >
               {experiments.map((experiment, index) => {
@@ -625,13 +658,13 @@ export default function Home() {
           >
             <a
               href="/experiments"
-              className="inline-flex items-center gap-2 h-11 px-5 rounded-full border transition-all duration-200 hover:bg-[var(--color-on-background)] hover:text-[var(--color-background)]"
+              className="group inline-flex items-center gap-2 h-11 px-5 rounded-full border transition-all duration-200 hover:bg-[var(--color-on-background)]"
               style={{
                 borderColor: "var(--color-on-background)",
                 color: "var(--color-on-background)",
               }}
             >
-              <span className="font-medium text-base whitespace-nowrap">
+              <span className="font-medium text-base whitespace-nowrap group-hover:text-[var(--color-background)]">
                 All Experiments
               </span>
               <svg
@@ -647,16 +680,21 @@ export default function Home() {
                   strokeWidth="1.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
+                  className="group-hover:stroke-[var(--color-background)]"
                 />
               </svg>
             </a>
           </div>
         </div>
 
-      {/* Additional page content can go here */}
-      <div style={{ height: "100vh", padding: "44px" }}>
-        {/* Future content sections */}
-      </div>
+      {/* Stories Section */}
+      <StoriesSection stories={getFeaturedStories()} />
+
+      {/* Community Section */}
+      <CommunitySection />
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

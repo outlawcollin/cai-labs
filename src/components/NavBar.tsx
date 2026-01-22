@@ -34,14 +34,11 @@ interface NavBarProps {
 }
 
 export function NavBar({ isScrolled = false, logoRef, navOpacity = 1 }: NavBarProps) {
+  const textColor = "var(--color-on-surface)";
   return (
     <nav
       className="fixed left-0 right-0 z-50 flex items-center px-11 py-5 transition-all duration-300"
-      style={{
-        background: isScrolled
-          ? "linear-gradient(to bottom, var(--color-background) 0%, var(--color-background) 60%, transparent 100%)"
-          : "transparent",
-      }}
+      style={{ background: "transparent" }}
     >
       {/* Nav Links */}
       <div
@@ -52,8 +49,11 @@ export function NavBar({ isScrolled = false, logoRef, navOpacity = 1 }: NavBarPr
           <Link
             key={link.label}
             href={link.href}
-            className="font-mono text-lg px-1 py-0.5 rounded-lg transition-colors hover:opacity-70"
-            style={{ color: "var(--color-on-surface)" }}
+            className="font-mono text-lg px-1 py-0.5 rounded-lg hover:opacity-70"
+            style={{
+              color: textColor,
+              transition: "color 300ms ease",
+            }}
           >
             {link.label}
           </Link>
@@ -76,15 +76,18 @@ export function NavBar({ isScrolled = false, logoRef, navOpacity = 1 }: NavBarPr
 
       {/* Social Links */}
       <div
-        className="flex gap-4 items-center flex-1 justify-end"
+        className="flex gap-4 items-center flex-1 justify-end pr-4"
         style={{ opacity: navOpacity }}
       >
         <a
           href="https://x.com/character_ai"
           target="_blank"
           rel="noopener noreferrer"
-          className="transition-opacity hover:opacity-70"
-          style={{ color: "var(--color-on-surface)" }}
+          className="hover:opacity-70"
+          style={{
+            color: textColor,
+            transition: "color 300ms ease",
+          }}
         >
           <XIcon />
         </a>
@@ -92,8 +95,11 @@ export function NavBar({ isScrolled = false, logoRef, navOpacity = 1 }: NavBarPr
           href="https://discord.gg/characterai"
           target="_blank"
           rel="noopener noreferrer"
-          className="transition-opacity hover:opacity-70"
-          style={{ color: "var(--color-on-surface)" }}
+          className="hover:opacity-70"
+          style={{
+            color: textColor,
+            transition: "color 300ms ease",
+          }}
         >
           <DiscordIcon />
         </a>

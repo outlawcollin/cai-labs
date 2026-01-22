@@ -54,6 +54,7 @@ export function ExpressiveMascot({
   const [consumeProgress, setConsumeProgress] = useState(0);
   const [consumeStartPos, setConsumeStartPos] = useState<{ x: number; y: number } | null>(null);
   const consumeAnimationRef = useRef<number | null>(null);
+  const consumeStartedRef = useRef(false); // Guard against re-initialization
 
   // Get mascot assets from registry
   const mascotAssets = getMascot(mascotData.mascotId || 'mascot-21');
@@ -188,9 +189,16 @@ export function ExpressiveMascot({
   }, [isBeingDragged, handleGrab, handleRelease]);
 
   // Handle being consumed by portal - suck-in animation
+  // CRITICAL: mascotData.body is NOT in dependencies to prevent re-runs every physics frame
   useEffect(() => {
     if (isBeingConsumed && consumeTarget && onConsumeComplete) {
-      // Record starting position
+      // Only initialize ONCE per consume - prevents spin-reset-spin glitch
+      if (consumeStartedRef.current) {
+        return; // Animation already running, don't restart
+      }
+      consumeStartedRef.current = true;
+
+      // Capture starting position ONCE at the moment consume begins
       const startPos = mascotData.body?.position || { x: 0, y: 0 };
       setConsumeStartPos({ x: startPos.x, y: startPos.y });
       setConsumeProgress(0);
@@ -210,6 +218,7 @@ export function ExpressiveMascot({
           consumeAnimationRef.current = requestAnimationFrame(animateConsume);
         } else {
           // Animation complete
+          consumeStartedRef.current = false; // Reset for next consume
           onConsumeComplete();
         }
       };
@@ -221,8 +230,11 @@ export function ExpressiveMascot({
           cancelAnimationFrame(consumeAnimationRef.current);
         }
       };
+    } else {
+      // Reset guard when not consuming (allows future consumes to work)
+      consumeStartedRef.current = false;
     }
-  }, [isBeingConsumed, consumeTarget, onConsumeComplete, mascotData.body]);
+  }, [isBeingConsumed, consumeTarget, onConsumeComplete]); // Removed mascotData.body!
 
   // Animation frame loop
   useEffect(() => {
@@ -318,20 +330,17 @@ export function ExpressiveMascot({
       return "scale(0)";
     }
     if (isBirthing) {
-      // Birth animation: starts squished tall/thin, expands with overshoot, settles
+      // Birth animation: scale up from 0 with bouncy "pop" effect
       // progress: 0 -> 1 over 180ms
 
-      // Easing with overshoot for bouncy feel
-      const overshoot = 1.70158;
+      // Elastic overshoot easing for bouncy pop
+      const overshoot = 2.5; // Higher overshoot for more bounce
       const eased = 1 + (overshoot + 1) * Math.pow(birthProgress - 1, 3) + overshoot * Math.pow(birthProgress - 1, 2);
 
-      // Start squished (scaleX: 0.3, scaleY: 1.5), end normal (1, 1)
-      const startScaleX = 0.3;
-      const startScaleY = 1.5;
-      const scaleX = startScaleX + (1 - startScaleX) * eased;
-      const scaleY = startScaleY + (1 - startScaleY) * eased;
+      // Start from scale 0, overshoot to ~1.2, settle at 1.0
+      const scale = Math.max(0, eased);
 
-      return `scale(${scaleX}, ${scaleY})`;
+      return `scale(${scale})`;
     }
     if (isBeingConsumed) {
       // Shrink and spin as being sucked into portal
@@ -374,7 +383,7 @@ export function ExpressiveMascot({
           height: MASCOT_SIZE,
           willChange: "transform",
           transition: isStanding ? "transform 0.3s ease-out" : undefined,
-          zIndex: isBeingConsumed ? 70 : undefined, // Boost z-index during consume
+          zIndex: isBeingConsumed ? 70 : isBeingDragged ? 70 : undefined, // Boost z-index during drag and consume
         }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -423,7 +432,7 @@ export function ExpressiveMascot({
         height: MASCOT_SIZE,
         willChange: "transform",
         transition: isStanding ? "transform 0.3s ease-out" : undefined,
-        zIndex: isBeingConsumed ? 70 : undefined, // Boost z-index during consume to appear above portal
+        zIndex: isBeingConsumed ? 70 : isBeingDragged ? 70 : undefined, // Boost z-index during drag and consume to appear above portal
         ...getConsumeStyle(),
       }}
       onMouseDown={isBeingConsumed ? undefined : handleMouseDown}
