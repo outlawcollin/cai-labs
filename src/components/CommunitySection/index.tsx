@@ -5,17 +5,17 @@ import { bandConfigs, getCreationsForBand } from "@/data/communityCreations";
 
 export function CommunitySection() {
   return (
-    <section className="py-24">
+    <section className="py-16 md:py-24">
       {/* Section Header - white background */}
-      <div className="mb-10 px-11 text-center">
+      <div className="mb-10 md:mb-16 px-2 md:px-11 text-center">
         <h2
-          className="font-semibold text-[48px] leading-[1] tracking-[-0.96px] mb-3"
+          className="font-semibold text-[32px] md:text-[48px] leading-[1] tracking-[-0.64px] md:tracking-[-0.96px] mb-3"
           style={{ color: "var(--color-on-background)" }}
         >
           created by the community
         </h2>
         <p
-          className="font-medium text-[20px] leading-normal"
+          className="font-medium text-[16px] md:text-[20px] leading-normal"
           style={{ color: "var(--color-on-background)" }}
         >
           What people are making with Cai Labs experiments.
@@ -27,7 +27,7 @@ export function CommunitySection() {
         className="relative overflow-hidden"
         style={{
           backgroundColor: "var(--color-brand-off-white)",
-          height: "max(700px, 70vh)",
+          height: "clamp(450px, 65vh, 900px)",
         }}
       >
         {/* All bands occupy same space, stacked by zIndex */}

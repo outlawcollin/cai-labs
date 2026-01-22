@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { LabsLogo } from "@/components/Logo";
-import { RefObject } from "react";
+import { RefObject, useState } from "react";
 
 const navLinks = [
   { label: "About", href: "/about" },
@@ -10,6 +10,29 @@ const navLinks = [
   { label: "Stories", href: "/stories" },
   { label: "Community", href: "/community" },
 ];
+
+function HamburgerIcon({ isOpen }: { isOpen: boolean }) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {isOpen ? (
+        // X icon when menu is open
+        <path
+          d="M6 6L18 18M6 18L18 6"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      ) : (
+        // Hamburger icon when menu is closed
+        <>
+          <path d="M4 6H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          <path d="M4 12H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          <path d="M4 18H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </>
+      )}
+    </svg>
+  );
+}
 
 function XIcon() {
   return (
@@ -31,80 +54,153 @@ interface NavBarProps {
   isScrolled?: boolean;
   logoRef?: RefObject<HTMLDivElement | null>;
   navOpacity?: number;
+  onMobileMenuChange?: (isOpen: boolean) => void;
 }
 
-export function NavBar({ isScrolled = false, logoRef, navOpacity = 1 }: NavBarProps) {
+export function NavBar({ isScrolled = false, logoRef, navOpacity = 1, onMobileMenuChange }: NavBarProps) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const textColor = "var(--color-on-surface)";
+
+  const toggleMobileMenu = () => {
+    const newState = !mobileMenuOpen;
+    setMobileMenuOpen(newState);
+    onMobileMenuChange?.(newState);
+  };
+
+  const handleLinkClick = () => {
+    setMobileMenuOpen(false);
+    onMobileMenuChange?.(false);
+  };
+
   return (
-    <nav
-      className="fixed left-0 right-0 z-50 flex items-center px-11 py-5 transition-all duration-300"
-      style={{ background: "transparent" }}
-    >
-      {/* Nav Links */}
-      <div
-        className="flex gap-4 items-center flex-1"
-        style={{ opacity: navOpacity }}
+    <>
+      <nav
+        className="fixed left-0 right-0 z-50 flex items-center px-6 md:px-11 py-4 md:py-5 transition-all duration-300"
+        style={{ background: "transparent" }}
       >
-        {navLinks.map((link) => (
-          <Link
-            key={link.label}
-            href={link.href}
-            className="font-mono text-lg px-1 py-0.5 rounded-lg hover:opacity-70"
+        {/* Hamburger Menu Button - mobile only */}
+        <button
+          className="md:hidden p-2 -ml-2 z-50"
+          onClick={toggleMobileMenu}
+          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+          style={{ color: textColor, opacity: navOpacity }}
+        >
+          <HamburgerIcon isOpen={mobileMenuOpen} />
+        </button>
+
+        {/* Nav Links - desktop only */}
+        <div
+          className="hidden md:flex gap-4 items-center flex-1"
+          style={{ opacity: navOpacity }}
+        >
+          {navLinks.map((link) => (
+            <Link
+              key={link.label}
+              href={link.href}
+              className="font-mono text-lg px-1 py-0.5 rounded-lg hover:opacity-70"
+              style={{
+                color: textColor,
+                transition: "color 300ms ease",
+              }}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
+
+        {/* Spacer for mobile to push social links to right */}
+        <div className="flex-1 md:hidden" />
+
+        {/* Center Logo - positioned relative to viewport center, not nav */}
+        <div
+          ref={logoRef}
+          className="fixed left-1/2 transition-all duration-500 ease-out"
+          style={{
+            top: "20px",
+            opacity: isScrolled ? 1 : 0,
+            transform: `translateX(-50%) translateY(${isScrolled ? 0 : 20}px)`,
+            pointerEvents: isScrolled ? "auto" : "none",
+          }}
+        >
+          <LabsLogo />
+        </div>
+
+        {/* Social Links - always visible */}
+        <div
+          className="flex gap-4 items-center flex-1 justify-end pr-0 md:pr-4"
+          style={{ opacity: navOpacity }}
+        >
+          <a
+            href="https://x.com/character_ai"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:opacity-70"
             style={{
               color: textColor,
               transition: "color 300ms ease",
             }}
           >
-            {link.label}
-          </Link>
-        ))}
-      </div>
+            <XIcon />
+          </a>
+          <a
+            href="https://discord.gg/characterai"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:opacity-70"
+            style={{
+              color: textColor,
+              transition: "color 300ms ease",
+            }}
+          >
+            <DiscordIcon />
+          </a>
+        </div>
+      </nav>
 
-      {/* Center Logo - positioned relative to viewport center, not nav */}
+      {/* Mobile Menu Overlay */}
       <div
-        ref={logoRef}
-        className="fixed left-1/2 transition-all duration-500 ease-out"
-        style={{
-          top: "20px",
-          opacity: isScrolled ? 1 : 0,
-          transform: `translateX(-50%) translateY(${isScrolled ? 0 : 20}px)`,
-          pointerEvents: isScrolled ? "auto" : "none",
-        }}
+        className={`fixed inset-0 z-40 md:hidden transition-all duration-300 ${
+          mobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+        style={{ backgroundColor: "var(--color-background)" }}
       >
-        <LabsLogo />
-      </div>
+        <div className="flex flex-col gap-8 p-6 pt-24">
+          {navLinks.map((link) => (
+            <Link
+              key={link.label}
+              href={link.href}
+              onClick={handleLinkClick}
+              className="font-mono text-3xl hover:opacity-70 transition-opacity"
+              style={{ color: "var(--color-on-background)" }}
+            >
+              {link.label}
+            </Link>
+          ))}
 
-      {/* Social Links */}
-      <div
-        className="flex gap-4 items-center flex-1 justify-end pr-4"
-        style={{ opacity: navOpacity }}
-      >
-        <a
-          href="https://x.com/character_ai"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hover:opacity-70"
-          style={{
-            color: textColor,
-            transition: "color 300ms ease",
-          }}
-        >
-          <XIcon />
-        </a>
-        <a
-          href="https://discord.gg/characterai"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hover:opacity-70"
-          style={{
-            color: textColor,
-            transition: "color 300ms ease",
-          }}
-        >
-          <DiscordIcon />
-        </a>
+          {/* Social links in mobile menu */}
+          <div className="flex gap-6 mt-8 pt-8 border-t" style={{ borderColor: "var(--color-outline)" }}>
+            <a
+              href="https://x.com/character_ai"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:opacity-70 transition-opacity"
+              style={{ color: "var(--color-on-background)" }}
+            >
+              <XIcon />
+            </a>
+            <a
+              href="https://discord.gg/characterai"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:opacity-70 transition-opacity"
+              style={{ color: "var(--color-on-background)" }}
+            >
+              <DiscordIcon />
+            </a>
+          </div>
+        </div>
       </div>
-    </nav>
+    </>
   );
 }
 

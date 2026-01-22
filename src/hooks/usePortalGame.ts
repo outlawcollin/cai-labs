@@ -55,6 +55,7 @@ export function usePortalGame({
   const consumingMascotsRef = useRef<Set<string>>(new Set());
   const [consumingMascots, setConsumingMascots] = useState<ConsumingMascot[]>([]);
   const idleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const consumeMascotRef = useRef<(mascotId: string, mascotPosition: { x: number; y: number }) => void>(() => {});
 
   // Create portal sensor body
   const createPortalSensor = useCallback(
@@ -142,7 +143,9 @@ export function usePortalGame({
   const applyPortalGravity = useCallback(() => {
     if (!portalState.active || !portalState.position) return;
 
-    const maxForce = 0.002;
+    const maxForce = 0.003; // Stronger max force
+    const consumeThreshold = 60; // Larger threshold for more reliable consumption
+    const velocityOverrideThreshold = 120; // Distance at which we override velocity for smooth pull
 
     mascots.forEach((mascot) => {
       // Skip if being dragged or being consumed
@@ -157,13 +160,28 @@ export function usePortalGame({
       const dy = portalState.position!.y - body.position.y;
       const distance = Math.sqrt(dx * dx + dy * dy);
 
-      // Only apply within radius
-      if (distance > PORTAL_GRAVITY_RADIUS || distance < 10) return;
+      // Auto-consume when very close to portal center (distance-based, not collision)
+      if (distance < consumeThreshold) {
+        consumeMascotRef.current(mascot.id, body.position);
+        return;
+      }
 
-      // Force increases as mascot gets closer
+      // Only apply gravity within radius
+      if (distance > PORTAL_GRAVITY_RADIUS) return;
+
+      // When close, override velocity directly toward portal for smooth pull (prevents glitching)
+      if (distance < velocityOverrideThreshold) {
+        const dirX = dx / distance;
+        const dirY = dy / distance;
+        const pullSpeed = 6 * (1 - distance / velocityOverrideThreshold); // Faster when closer
+        Body.setVelocity(body, { x: dirX * pullSpeed, y: dirY * pullSpeed });
+        return; // Skip force-based gravity when overriding velocity
+      }
+
+      // Force increases as mascot gets closer (stronger pull)
       const intensity = 1 - distance / PORTAL_GRAVITY_RADIUS;
       const forceMagnitude = Math.min(
-        PORTAL_GRAVITY_STRENGTH * intensity * intensity,
+        PORTAL_GRAVITY_STRENGTH * intensity * intensity * 1.5, // Increased strength
         maxForce
       );
 
@@ -185,10 +203,16 @@ export function usePortalGame({
       // Play portal consume sound
       playSound("portal-consume");
 
-      // Find the mascot and make it static during animation
+      // Find the mascot and completely freeze it at current position
       const mascot = mascots.find((m) => m.id === mascotId);
       if (mascot) {
+        // Stop all motion first
+        Body.setVelocity(mascot.body, { x: 0, y: 0 });
+        Body.setAngularVelocity(mascot.body, 0);
+        // Then make static
         Body.setStatic(mascot.body, true);
+        // Mark state to prevent any further physics interactions
+        mascot.state = "dragging"; // Use dragging state to skip gravity application
       }
 
       // Trigger consuming animation on portal
@@ -215,6 +239,9 @@ export function usePortalGame({
     },
     [mascots]
   );
+
+  // Keep ref updated for use in applyPortalGravity
+  consumeMascotRef.current = consumeMascot;
 
   // Destroy portal and reset state (defined first to avoid circular dependency)
   const destroyPortal = useCallback(() => {

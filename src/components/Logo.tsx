@@ -1,3 +1,5 @@
+import React from "react";
+
 export function Logo({ className }: { className?: string }) {
   return (
     <svg
@@ -42,20 +44,19 @@ export function Logo({ className }: { className?: string }) {
 
 export function LabsLogo({ className }: { className?: string }) {
   return (
-    <div className={`flex items-center gap-1 ${className || ""}`}>
-      <span
-        className="font-mono text-[26px]"
-        style={{ color: "var(--color-primary)" }}
-      >
-        (c.ai)
-      </span>
-      <span
-        className="font-mono text-[26px]"
-        style={{ color: "var(--color-primary)" }}
-      >
-        labs
-      </span>
-    </div>
+    <img
+      src="/logo.svg"
+      alt="(c.ai)labs"
+      className={`dark:brightness-0 dark:invert ${className || ""}`}
+      draggable={false}
+      onContextMenu={(e) => e.preventDefault()}
+      style={{
+        height: "26px",
+        userSelect: "none",
+        WebkitUserDrag: "none",
+        pointerEvents: "none",
+      } as React.CSSProperties}
+    />
   );
 }
 

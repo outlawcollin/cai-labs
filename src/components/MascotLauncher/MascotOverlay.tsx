@@ -13,6 +13,10 @@ import { preloadMascotAssets } from "@/lib/mascots/registry";
 
 const { Bodies, Body, World, Events } = Matter;
 
+// Card dimensions must match page.tsx
+const CARD_WIDTH = 420;
+const CARD_HEIGHT = 640;
+
 interface MascotOverlayProps {
   logoPosition: { x: number; y: number } | null;
   titleRef: RefObject<HTMLHeadingElement | null>;
@@ -48,6 +52,9 @@ export function MascotOverlay({ logoPosition, titleRef, cardRefs, onSpawnerReady
   onPortalStateChangeRef.current = onPortalStateChange;
   const onTriggerLogoAnimationRef = useRef(onTriggerLogoAnimation);
   onTriggerLogoAnimationRef.current = onTriggerLogoAnimation;
+  const spawnCancelledRef = useRef(false);
+  const isHeroStateRef = useRef(isHeroState);
+  isHeroStateRef.current = isHeroState;
 
   const { engine, registerUpdateCallback } = usePhysicsEngine();
 
@@ -151,19 +158,40 @@ export function MascotOverlay({ logoPosition, titleRef, cardRefs, onSpawnerReady
     if (!draggedMascotRef.current) return;
 
     const mascot = draggedMascotRef.current;
+    const pos = mascot.body.position;
 
-    // Reset angle to upright when released
+    // Check if released near portal - let gravity take over smoothly
+    if (portalState.active && portalState.position) {
+      const dx = portalState.position.x - pos.x;
+      const dy = portalState.position.y - pos.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      // If within gravity radius, give velocity toward portal instead of down
+      if (distance < PORTAL_GRAVITY_RADIUS) {
+        Body.setAngle(mascot.body, 0);
+        Body.setStatic(mascot.body, false);
+        // Give velocity TOWARD portal
+        const dirX = dx / distance;
+        const dirY = dy / distance;
+        Body.setVelocity(mascot.body, { x: dirX * 4, y: dirY * 4 });
+        mascot.state = "flying";
+        mascot.cardBounceCount = 0;
+        draggedMascotRef.current = null;
+        setDraggedMascotId(null);
+        return;
+      }
+    }
+
+    // Normal release behavior (outside portal gravity)
     Body.setAngle(mascot.body, 0);
-    // Make the body non-static so physics takes over again
     Body.setStatic(mascot.body, false);
-    // Give a tiny downward velocity so it starts falling naturally
     Body.setVelocity(mascot.body, { x: 0, y: 2 });
 
     mascot.state = "flying";
-    mascot.cardBounceCount = 0; // Reset so they can stand again
+    mascot.cardBounceCount = 0;
     draggedMascotRef.current = null;
     setDraggedMascotId(null);
-  }, []);
+  }, [portalState.active, portalState.position]);
 
   // Listen for card collisions to trigger bounce animation
   useEffect(() => {
@@ -232,11 +260,14 @@ export function MascotOverlay({ logoPosition, titleRef, cardRefs, onSpawnerReady
             }
           }
 
+          // Use actual card dimensions for non-rotated cards (mobile)
+          // For rotated cards (desktop), use hardcoded dimensions since bounding rect is inflated
+          const useActualDimensions = Math.abs(angle) < 0.01;
           const cardBody = Bodies.rectangle(
             rect.left + rect.width / 2,
             rect.top + rect.height / 2,
-            rect.width,
-            rect.height,
+            useActualDimensions ? rect.width : CARD_WIDTH,
+            useActualDimensions ? rect.height : CARD_HEIGHT,
             {
               isStatic: true,
               angle,
@@ -296,11 +327,14 @@ export function MascotOverlay({ logoPosition, titleRef, cardRefs, onSpawnerReady
             }
           }
 
+          // Use actual card dimensions for non-rotated cards (mobile)
+          // For rotated cards (desktop), use hardcoded dimensions since bounding rect is inflated
+          const useActualDimensions = Math.abs(angle) < 0.01;
           const cardBody = Bodies.rectangle(
             rect.left + rect.width / 2,
             rect.top + rect.height / 2,
-            rect.width,
-            rect.height,
+            useActualDimensions ? rect.width : CARD_WIDTH,
+            useActualDimensions ? rect.height : CARD_HEIGHT,
             {
               isStatic: true,
               angle,
@@ -343,12 +377,20 @@ export function MascotOverlay({ logoPosition, titleRef, cardRefs, onSpawnerReady
     }
   }, [isReady, onSpawnerReady, spawnMascot]);
 
+  // Wrapped flyAway that also cancels pending spawns
+  const flyAwayAndCancel = useCallback(() => {
+    // Cancel any pending spawns
+    spawnCancelledRef.current = true;
+    // Execute fly away
+    flyAwayAll();
+  }, [flyAwayAll]);
+
   // Expose fly away function to parent
   useEffect(() => {
     if (isReady && onFlyAwayReadyRef.current) {
-      onFlyAwayReadyRef.current(flyAwayAll);
+      onFlyAwayReadyRef.current(flyAwayAndCancel);
     }
-  }, [isReady, flyAwayAll]);
+  }, [isReady, flyAwayAndCancel]);
 
   // Expose knock over function to parent
   useEffect(() => {
@@ -364,27 +406,110 @@ export function MascotOverlay({ logoPosition, titleRef, cardRefs, onSpawnerReady
     }
   }, [portalState.active]);
 
+  // Helper to update physics bodies immediately
+  const updateCardBodies = useCallback(() => {
+    if (!engine || !cardRefs.current) return;
+
+    // Remove old bodies
+    if (staticBodiesRef.current.length > 0) {
+      World.remove(engine.world, staticBodiesRef.current);
+      staticBodiesRef.current = [];
+    }
+
+    const bodies: Matter.Body[] = [];
+
+    cardRefs.current.forEach((cardEl, index) => {
+      if (!cardEl) return;
+
+      const rect = cardEl.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+
+      const style = window.getComputedStyle(cardEl);
+      const transform = style.transform;
+      let angle = 0;
+
+      if (transform && transform !== "none") {
+        const values = transform.match(/matrix\(([^)]+)\)/);
+        if (values) {
+          const parts = values[1].split(", ");
+          angle = Math.atan2(parseFloat(parts[1]), parseFloat(parts[0]));
+        }
+      }
+
+      // Use actual card dimensions for non-rotated cards (mobile)
+      // For rotated cards (desktop), use hardcoded dimensions since bounding rect is inflated
+      const useActualDimensions = Math.abs(angle) < 0.01;
+      const cardBody = Bodies.rectangle(
+        rect.left + rect.width / 2,
+        rect.top + rect.height / 2,
+        useActualDimensions ? rect.width : CARD_WIDTH,
+        useActualDimensions ? rect.height : CARD_HEIGHT,
+        {
+          isStatic: true,
+          angle,
+          label: `card-${index}`,
+          restitution: 0.6,
+          friction: 0.1,
+          chamfer: { radius: 16 },
+        }
+      );
+      bodies.push(cardBody);
+    });
+
+    if (bodies.length > 0) {
+      World.add(engine.world, bodies);
+      staticBodiesRef.current = bodies;
+      // Ensure scroll updates will work after manual update
+      bodiesCreatedRef.current = true;
+    }
+  }, [engine, cardRefs]);
+
   // Function to spawn mascots with delays (used for initial and respawn)
   const spawnMascotsWithDelay = useCallback(async () => {
-    const numMascots = 5;
+    // Reset cancellation flag
+    spawnCancelledRef.current = false;
+
+    // Update physics bodies before spawning to ensure alignment
+    // Use a small delay first to let any card animations settle
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    updateCardBodies();
+
+    // Additional delay to let physics bodies settle
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // Randomize number of mascots (4-10)
+    const numMascots = Math.floor(Math.random() * 7) + 4;
     const centerX = window.innerWidth / 2;
     const centerY = window.innerHeight / 2;
 
     for (let i = 0; i < numMascots; i++) {
+      // Check if spawn was cancelled (user scrolled away)
+      if (spawnCancelledRef.current || !isHeroStateRef.current) {
+        break;
+      }
+
       const angle = (i / numMascots) * Math.PI * 2 + Math.random() * 0.5;
       const radius = 300 + Math.random() * 200;
       const clickX = centerX + Math.cos(angle) * radius;
       const clickY = centerY + Math.sin(angle) * radius;
 
-      // Trigger logo animation before each spawn
+      // Trigger logo animation first
       onTriggerLogoAnimationRef.current?.();
+
+      // Wait for logo animation to play before spawning (250ms delay)
+      await new Promise((resolve) => setTimeout(resolve, 250));
+
+      // Check again after delay in case user scrolled
+      if (spawnCancelledRef.current || !isHeroStateRef.current) {
+        break;
+      }
 
       spawnMascot(clickX, clickY);
 
-      // Longer delay between spawns (300-450ms)
-      await new Promise((resolve) => setTimeout(resolve, 300 + Math.random() * 150));
+      // Short delay between spawns (150-250ms)
+      await new Promise((resolve) => setTimeout(resolve, 150 + Math.random() * 100));
     }
-  }, [spawnMascot]);
+  }, [spawnMascot, updateCardBodies]);
 
   // Expose respawn function to parent
   useEffect(() => {

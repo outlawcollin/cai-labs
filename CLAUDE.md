@@ -100,6 +100,52 @@ npm run build  # Production build
 npm run lint   # Run ESLint
 ```
 
+## Mobile Responsiveness
+
+### Breakpoints
+- Mobile: `< 768px` (detected via `windowWidth < 768`)
+- Desktop: `>= 768px`
+
+### Mobile-Specific Behaviors
+
+**Experiment Cards:**
+- Vertical stack layout (not horizontal scroll)
+- 300px card height (vs 640px desktop)
+- Fade-in and slide-up animation on intro (uses `intro.cardProgress`)
+- Bounce effect on mascot landing (scale 0.97)
+- Fixed container height prevents layout shift during fade-in
+
+**Physics Bodies:**
+- Uses actual card dimensions (`rect.width`/`rect.height`) for non-rotated mobile cards
+- Desktop uses hardcoded 420×640 dimensions (bounding rect inflated by rotation)
+- `bodiesCreatedRef` ensures scroll updates work after manual refresh
+- 200ms delay before updating bodies on respawn to let animations settle
+
+**Hero Section:**
+- Full screen height: `calc(100vh - 180px)`
+- Hero text doesn't fade on scroll (stays visible)
+- Intro logo scales at 0.7x to prevent clipping
+
+**Community Section:**
+- Height: `clamp(450px, 65vh, 900px)`
+- Y offset multiplier: 0.8 (vs 1.0 desktop) for cards
+- Card scale: 0.6x of desktop
+
+**Navigation:**
+- Hamburger menu on mobile
+- Logo and mascots hidden when mobile menu is open
+- Nav items slide in from right
+
+**Conditional Rendering:**
+- Mobile and desktop cards use `{isMobile && ...}` / `{!isMobile && ...}` (not CSS hide)
+- Ensures `cardRefs` point to correct visible elements for physics
+
+### Dark Mode
+- `--color-primary` becomes white (`#ffffff`)
+- `--color-brand-off-white` becomes `#262626`
+- Logos use `dark:brightness-0 dark:invert`
+- Social icons use `dark:invert group-hover:invert dark:group-hover:invert-0`
+
 ## Notes
 - Reduced motion preference respected
 - Cards' physics bodies created 600ms after intro (wait for entrance animation)

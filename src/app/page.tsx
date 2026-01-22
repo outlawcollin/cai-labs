@@ -99,6 +99,7 @@ export default function Home() {
   const respawnMascotsRef = useRef<(() => void) | null>(null);
   const portalActiveRef = useRef(false);
   const hasLeftHero = useRef(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Check for reduced motion preference
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -358,6 +359,9 @@ export default function Home() {
   // Reference height is 900px, positions scale proportionally
   const heightScale = windowHeight / 900;
 
+  // Mobile breakpoint detection
+  const isMobile = windowWidth < 768;
+
   // Calculate offset to center the cards in hero state
   // In hero state, we want the middle card (index 2, butter) to be centered
   // The middle card's left edge in row layout is at: 2 * (CARD_WIDTH + CARD_GAP) = 880px from container left
@@ -400,26 +404,34 @@ export default function Home() {
       onClick={handlePageClick}
     >
       {/* Nav Bar with Logo */}
-      <NavBar isScrolled={isScrolled} logoRef={logoRef} navOpacity={intro.navOpacity} />
-
-      {/* Mascot Physics Overlay */}
-      <MascotOverlay
-        logoPosition={logoPosition}
-        titleRef={titleRef}
-        cardRefs={cardRefs}
-        onSpawnerReady={handleSpawnerReady}
-        onCardHit={handleCardHit}
-        isHeroState={!isScrolled}
-        onFlyAwayReady={handleFlyAwayReady}
-        onKnockOverReady={handleKnockOverReady}
-        onRespawnReady={handleRespawnReady}
-        onPortalStateChange={handlePortalStateChange}
-        onTriggerLogoAnimation={() => spawnLogoRef.current?.triggerSpawn()}
-        introComplete={intro.isComplete}
+      <NavBar
+        isScrolled={isScrolled}
+        logoRef={logoRef}
+        navOpacity={intro.navOpacity}
+        onMobileMenuChange={setMobileMenuOpen}
       />
 
+      {/* Mascot Physics Overlay - hidden when mobile menu is open */}
+      {!(mobileMenuOpen && isMobile) && (
+        <MascotOverlay
+          logoPosition={logoPosition}
+          titleRef={titleRef}
+          cardRefs={cardRefs}
+          onSpawnerReady={handleSpawnerReady}
+          onCardHit={handleCardHit}
+          isHeroState={!isScrolled}
+          onFlyAwayReady={handleFlyAwayReady}
+          onKnockOverReady={handleKnockOverReady}
+          onRespawnReady={handleRespawnReady}
+          onPortalStateChange={handlePortalStateChange}
+          onTriggerLogoAnimation={() => spawnLogoRef.current?.triggerSpawn()}
+          introComplete={intro.isComplete}
+        />
+      )}
+
       {/* Intro Animation Logo - centered during animation, then moves to top */}
-      {!intro.isComplete && (
+      {/* Hidden when mobile menu is open */}
+      {!intro.isComplete && !(mobileMenuOpen && isMobile) && (
         <div
           className="fixed left-1/2 z-40"
           style={{
@@ -433,7 +445,8 @@ export default function Home() {
           <div
             className="flex items-center gap-1"
             style={{
-              transform: `scale(${intro.logoScale})`,
+              // Scale down on mobile to prevent clipping (0.7x of normal scale)
+              transform: `scale(${intro.logoScale * (isMobile ? 0.7 : 1)})`,
               transformOrigin: "center center",
             }}
           >
@@ -458,7 +471,8 @@ export default function Home() {
       )}
 
       {/* Animated Logo for after intro is complete - transforms to kaomoji when spawning */}
-      {intro.isComplete && (
+      {/* Hidden when mobile menu is open */}
+      {intro.isComplete && !(mobileMenuOpen && isMobile) && (
         <div
           ref={logoRef}
           className="fixed left-1/2 z-40 transition-all duration-500 ease-out"
@@ -476,20 +490,27 @@ export default function Home() {
         </div>
       )}
 
-      {/* Hero Section - contains hero text only */}
-      <div className="relative" style={{ height: `${500 * heightScale}px` }}>
-        {/* Hero Text */}
+      {/* Hero Section - full screen on mobile with card peek, normal height on desktop */}
+      <div
+        className="relative"
+        style={{
+          height: isMobile ? "calc(100vh - 180px)" : `${500 * heightScale}px`,
+        }}
+      >
+        {/* Hero Text - centered vertically on mobile */}
         <div
-          className="absolute left-1/2 w-full text-center transition-all duration-300 px-4"
+          className="absolute left-1/2 w-full text-center transition-all duration-300 px-2 md:px-4"
           style={{
-            top: `${210 * heightScale}px`,
-            opacity: intro.isComplete ? (1 - textEasedProgress) : 1,
-            transform: `translateX(-50%) translateY(${intro.isComplete ? -textEasedProgress * 100 : 0}px)`,
+            top: isMobile ? "55%" : `${210 * heightScale}px`,
+            opacity: intro.isComplete ? (isMobile ? 1 : (1 - textEasedProgress)) : 1,
+            transform: isMobile
+              ? "translateX(-50%) translateY(-50%)"
+              : `translateX(-50%) translateY(${intro.isComplete ? -textEasedProgress * 100 : 0}px)`,
           }}
         >
           <h1
             ref={titleRef}
-            className="font-semibold text-[72px] leading-[1] tracking-[-1.44px] mb-5"
+            className="font-semibold text-[36px] md:text-[72px] leading-[1] tracking-[-0.72px] md:tracking-[-1.44px] mb-4 md:mb-5"
             style={{
               color: "var(--color-primary)",
               opacity: intro.taglineOpacity,
@@ -501,7 +522,7 @@ export default function Home() {
             with what&apos;s next
           </h1>
           <p
-            className="font-medium text-[30px] leading-normal max-w-[700px] mx-auto"
+            className="font-medium text-[18px] md:text-[30px] leading-normal max-w-[700px] mx-auto"
             style={{
               color: "var(--color-primary)",
               opacity: intro.subtitleOpacity,
@@ -515,9 +536,9 @@ export default function Home() {
 
       {/* Cards Section - normal document flow */}
       <div ref={containerRef} style={{ overflow: "visible" }}>
-          {/* Section Title - appears when scrolled (delayed fade-in) */}
+          {/* Section Title - desktop only, appears when scrolled (delayed fade-in) */}
           <div
-            className="mb-6 px-11 text-center relative"
+            className="hidden md:block mb-10 md:mb-16 px-11 text-center relative"
             style={{
               opacity: sectionTitleEasedProgress,
               transform: `translateY(${(1 - sectionTitleEasedProgress) * 30}px)`,
@@ -541,9 +562,56 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Cards - stacked in hero, horizontal scrollable row when scrolled */}
+          {/* Mobile: Vertical stack of cards - animate in after intro completes */}
+          {/* Fixed height container prevents content shift during card fade-in */}
+          {/* Height = 5 cards × 300px + 4 gaps × 8px = 1532px */}
+          {/* Use conditional render (not CSS hide) so refs point to correct elements */}
+          {isMobile && (
           <div
-            className={`${isScrolled ? "overflow-x-auto scrollbar-hide select-none" : "overflow-visible"}`}
+            className="flex flex-col gap-2 px-2"
+            style={{ minHeight: `${experiments.length * 300 + (experiments.length - 1) * 8}px` }}
+          >
+            {experiments.map((experiment, index) => {
+              const cardIntroProgress = intro.cardProgress[index] ?? 0;
+              const isBouncing = bouncingCards.has(index);
+
+              return (
+                <div
+                  key={experiment.title}
+                  ref={(el) => { cardRefs.current[index] = el; }}
+                  style={{
+                    opacity: cardIntroProgress,
+                    transform: `translateY(${(1 - cardIntroProgress) * 50}px)`,
+                    transition: intro.isComplete ? "opacity 0.3s ease-out, transform 0.3s ease-out" : "none",
+                  }}
+                >
+                  <div
+                    style={{
+                      transform: isBouncing ? "scale(0.97)" : "scale(1)",
+                      transition: "transform 0.1s ease-out",
+                    }}
+                  >
+                    <ExperimentCard
+                      title={experiment.title}
+                      description={experiment.description}
+                      href={experiment.href}
+                      variant={experiment.variant}
+                      buttonText={experiment.buttonText}
+                      imageSrc={experiment.imageSrc}
+                      isMobile={true}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          )}
+
+          {/* Desktop: Cards - stacked in hero, horizontal scrollable row when scrolled */}
+          {/* Use conditional render (not CSS hide) so refs point to correct elements */}
+          {!isMobile && (
+          <div
+            className={`${isScrolled ? "overflow-x-auto overflow-y-hidden scrollbar-hide select-none" : "overflow-visible"}`}
             style={{
               cursor: isScrolled ? "grab" : "default",
             }}
@@ -646,14 +714,16 @@ export default function Home() {
               })}
             </div>
           </div>
+          )}
 
-          {/* All Experiments Button - appears when scrolled */}
+          {/* All Experiments Button - appears when scrolled (after intro on mobile) */}
           <div
             className="flex justify-center mt-10"
             style={{
-              opacity: easedProgress,
-              transform: `translateY(${(1 - easedProgress) * 20}px)`,
-              pointerEvents: easedProgress < 0.5 ? "none" : "auto",
+              opacity: isMobile ? (intro.isComplete ? 1 : 0) : easedProgress,
+              transform: isMobile ? `translateY(${intro.isComplete ? 0 : 20}px)` : `translateY(${(1 - easedProgress) * 20}px)`,
+              pointerEvents: isMobile ? (intro.isComplete ? "auto" : "none") : (easedProgress < 0.5 ? "none" : "auto"),
+              transition: isMobile ? "opacity 0.3s ease-out, transform 0.3s ease-out" : undefined,
             }}
           >
             <a

@@ -358,31 +358,58 @@ export function useMascotSpawner({ engine, logoPosition, letterAnchors }: Spawne
     setMascots([]);
   }, []);
 
-  // Make all mascots fly away upward
+  // Make all mascots fling upward and vanish quickly using direct position manipulation
   const flyAwayAll = useCallback(() => {
+    const currentEngine = engineRef.current;
+    if (!currentEngine) return;
+
+    // Animate each mascot upward directly (bypass physics)
     for (const mascot of mascotsRef.current) {
       if (mascot.isRemoving) continue;
 
-      // If standing, make non-static first
-      if (mascot.state === "standing") {
-        Body.setStatic(mascot.body, false);
-      }
-
-      // Apply strong upward force with slight horizontal randomness
-      const forceX = (Math.random() - 0.5) * 0.02;
-      const forceY = -0.08 - Math.random() * 0.04; // Strong upward force
-      Body.applyForce(mascot.body, mascot.body.position, { x: forceX, y: forceY });
-
+      // Make body static so physics doesn't interfere
+      Body.setStatic(mascot.body, true);
       mascot.state = "flying";
+
+      // Get starting position
+      const startY = mascot.body.position.y;
+      const startX = mascot.body.position.x;
+      const horizontalDrift = (Math.random() - 0.5) * 100; // Random horizontal drift
+      const startTime = performance.now();
+      const duration = 250; // ms for fling animation
+
+      // Animate position directly
+      const animateFling = (time: number) => {
+        const elapsed = time - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        // Ease out for natural deceleration
+        const eased = 1 - Math.pow(1 - progress, 3);
+
+        // Move upward and slightly sideways
+        const newY = startY - (400 * eased); // Move 400px up
+        const newX = startX + (horizontalDrift * eased);
+
+        Body.setPosition(mascot.body, { x: newX, y: newY });
+
+        if (progress < 1) {
+          requestAnimationFrame(animateFling);
+        }
+      };
+
+      requestAnimationFrame(animateFling);
     }
 
-    // Trigger re-render
-    setMascots((prev) => [...prev]);
+    // Mark as removing immediately to trigger scale-down while moving
+    setMascots((prev) => prev.map(mascot => ({
+      ...mascot,
+      isRemoving: true,
+    })));
 
-    // Clear all mascots after they fly away (1 second delay)
+    // Clear all mascots after animation completes
     setTimeout(() => {
       clearAllMascots();
-    }, 1000);
+    }, 300);
   }, [clearAllMascots]);
 
   // Knock over mascots standing on a specific card (when card is hovered)

@@ -114,17 +114,27 @@
   --color-brand-default-blue: #195eff;
   --color-brand-grey-black: #131313;
 
-  /* Card Colors - Fixed across light/dark modes */
-  --color-wired-lime: #aed900;
-  --color-midnight-forest: #2b9247;
-  --color-lowkey-lavender: #df91f2;
-  --color-alt-violet: #ae00d9;
+  /* Secondary Palette - Fixed across light/dark modes */
   --color-slippery-butter: #fff59e;
-  --color-toasty-amber: #f28500;
-  --color-irl-rose: #ffadd2;
-  --color-hyperlink-magenta: #d90082;
+  --color-wired-lime: #aed900;
   --color-icy-sky: #abf5ed;
+  --color-lowkey-lavender: #df91f2;
+  --color-irl-rose: #ffadd2;
+  --color-gold-rush: #ffe600;
+  --color-lucky-emerald: #00d973;
+  --color-refresh-cyan: #00d9d9;
+  --color-alt-violet: #ae00d9;
+  --color-hot-pink: #ff4dc9;
+  --color-toasty-amber: #f28500;
+  --color-dark-sage: #65a98f;
+  --color-cloudy-blue: #7db4ff;
+  --color-pinned-purple: #6b2e63;
+  --color-hyperlink-magenta: #d90082;
+  --color-cached-crimson: #d90000;
+  --color-midnight-forest: #2b9247;
   --color-default-blue: #195eff;
+  --color-quill-ink: #3e2733;
+  --color-lock-in-espresso: #652e1f;
 
   /* Neutral Light Scale */
   --color-neutral-000: #f3f3f3;
@@ -376,6 +386,9 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
+    /* Brand Colors - Dark mode overrides */
+    --color-brand-off-white: #262626;
+
     /* Surface & Background */
     --color-background: #131313;
     --color-surface: #1e1e1e;
@@ -390,9 +403,9 @@
     --color-outline: #737373;
     --color-outline-variant: #494949;
 
-    /* Primary */
-    --color-primary: #195eff;
-    --color-on-primary: #ffffff;
+    /* Primary - white in dark mode for logo and text visibility */
+    --color-primary: #ffffff;
+    --color-on-primary: #131313;
     --color-primary-container: #002270;
     --color-on-primary-container: #d1dfff;
 
@@ -454,4 +467,14 @@ body {
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* Marquee Animation for Community Section */
+@keyframes marquee-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(var(--marquee-distance, -33.333%));
+  }
 }

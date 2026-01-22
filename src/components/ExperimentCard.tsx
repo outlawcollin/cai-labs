@@ -29,6 +29,7 @@ interface ExperimentCardProps {
   imageSrc?: string;
   imageAlt?: string;
   onHoverStart?: () => void;
+  isMobile?: boolean;
 }
 
 interface VariantStyle {
@@ -138,6 +139,7 @@ export function ExperimentCard({
   imageSrc = "/placeholder.svg",
   imageAlt = "Experiment preview",
   onHoverStart,
+  isMobile = false,
 }: ExperimentCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const styles = variantStyles[variant];
@@ -166,6 +168,86 @@ export function ExperimentCard({
       ? "var(--color-brand-pure-white)"
       : "var(--color-brand-pure-black)";
 
+  // Mobile layout: horizontal with image on right
+  if (isMobile) {
+    return (
+      <Link
+        href={href}
+        draggable={false}
+        className="flex p-1 rounded-3xl overflow-hidden h-[300px]"
+        style={{
+          backgroundColor: styles.background,
+        }}
+        onDragStart={(e) => e.preventDefault()}
+      >
+        {/* Text content */}
+        <div className="flex-1 flex flex-col gap-1 p-1">
+          {/* Title with optional tag */}
+          <div className="flex items-start gap-2">
+            <h2
+              className="flex-1 font-semibold text-[24px] leading-[26px] tracking-[-0.48px] lowercase"
+              style={{ color: styles.text }}
+            >
+              {title}
+            </h2>
+            {tag && (
+              <div
+                className="px-1.5 py-1 rounded flex items-center"
+                style={{ backgroundColor: styles.text }}
+              >
+                <span
+                  className="font-mono text-[8px] uppercase leading-none"
+                  style={{ color: styles.background }}
+                >
+                  {tag}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Description */}
+          <p
+            className="font-medium text-[12px] leading-[16px] line-clamp-5"
+            style={{ color: styles.text }}
+          >
+            {description}
+          </p>
+
+          {/* Button - full width, pushes to bottom */}
+          <div className="flex-1 flex items-end">
+            <div
+              className="flex items-center justify-center gap-1.5 h-10 w-full rounded-full border"
+              style={{
+                borderColor: isFilledButton ? "transparent" : styles.buttonBorder,
+                backgroundColor: isFilledButton ? "var(--color-brand-pure-black)" : "transparent",
+              }}
+            >
+              <span
+                className="font-medium text-sm whitespace-nowrap"
+                style={{ color: isFilledButton ? "var(--color-brand-pure-white)" : "var(--color-brand-pure-black)" }}
+              >
+                {buttonText}
+              </span>
+              <ArrowRightIcon
+                style={{
+                  color: isFilledButton ? "var(--color-brand-pure-white)" : "var(--color-brand-pure-black)",
+                  width: 16,
+                  height: 16,
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Image */}
+        <div className="relative w-[140px] rounded-2xl overflow-hidden bg-white flex-shrink-0">
+          <Image src={imageSrc} alt={imageAlt} fill className="object-cover" />
+        </div>
+      </Link>
+    );
+  }
+
+  // Desktop layout: vertical
   return (
     <Link
       href={href}
@@ -256,12 +338,13 @@ function ArrowRightIcon({
   style,
 }: {
   className?: string;
-  style?: React.CSSProperties;
+  style?: React.CSSProperties & { width?: number; height?: number };
 }) {
+  const size = style?.width ?? 20;
   return (
     <svg
-      width="20"
-      height="20"
+      width={size}
+      height={size}
       viewBox="0 0 20 20"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

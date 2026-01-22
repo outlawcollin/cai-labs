@@ -22,6 +22,6 @@ export interface PortalProps {
 }
 
 export const PORTAL_SIZE = 100;
-export const PORTAL_GRAVITY_RADIUS = 280; // Increased from 200 for stronger pull-in effect
-export const PORTAL_GRAVITY_STRENGTH = 0.0003;
+export const PORTAL_GRAVITY_RADIUS = 450; // Large radius for wide pull effect
+export const PORTAL_GRAVITY_STRENGTH = 0.0006; // Stronger pull
 export const PORTAL_IDLE_TIMEOUT = 8000;

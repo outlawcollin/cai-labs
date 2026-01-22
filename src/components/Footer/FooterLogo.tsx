@@ -212,7 +212,7 @@ export function FooterLogo() {
         <img
           src="/logo.svg"
           alt="(c.ai)labs"
-          className="w-full"
+          className="w-full dark:brightness-0 dark:invert"
           draggable={false}
           onContextMenu={(e) => e.preventDefault()}
           style={{

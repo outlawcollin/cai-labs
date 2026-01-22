@@ -119,6 +119,38 @@ export function ExpressiveMascot({
     window.addEventListener('mouseup', handleMouseUp);
   }, [onDragStart, onDragEnd, onDragMove]);
 
+  // Handle touch events for mobile support
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const touch = e.touches[0];
+    if (onDragStart) {
+      onDragStart({ clientX: touch.clientX, clientY: touch.clientY });
+    }
+
+    const handleTouchMove = (moveEvent: TouchEvent) => {
+      moveEvent.preventDefault();
+      const touch = moveEvent.touches[0];
+      if (onDragMove) {
+        onDragMove(touch.clientX, touch.clientY);
+      }
+    };
+
+    const handleTouchEnd = () => {
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener('touchcancel', handleTouchEnd);
+      if (onDragEnd) {
+        onDragEnd();
+      }
+    };
+
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd);
+    window.addEventListener('touchcancel', handleTouchEnd);
+  }, [onDragStart, onDragEnd, onDragMove]);
+
   // Handle drag state changes - bouncy expand and wiggle
   useEffect(() => {
     if (isBeingDragged) {
@@ -384,8 +416,10 @@ export function ExpressiveMascot({
           willChange: "transform",
           transition: isStanding ? "transform 0.3s ease-out" : undefined,
           zIndex: isBeingConsumed ? 70 : isBeingDragged ? 70 : undefined, // Boost z-index during drag and consume
+          touchAction: "none", // Prevent scroll while dragging on touch devices
         }}
         onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
@@ -433,9 +467,11 @@ export function ExpressiveMascot({
         willChange: "transform",
         transition: isStanding ? "transform 0.3s ease-out" : undefined,
         zIndex: isBeingConsumed ? 70 : isBeingDragged ? 70 : undefined, // Boost z-index during drag and consume to appear above portal
+        touchAction: "none", // Prevent scroll while dragging on touch devices
         ...getConsumeStyle(),
       }}
       onMouseDown={isBeingConsumed ? undefined : handleMouseDown}
+      onTouchStart={isBeingConsumed ? undefined : handleTouchStart}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >

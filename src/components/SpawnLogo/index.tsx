@@ -50,6 +50,8 @@ export const SpawnLogo = forwardRef<SpawnLogoHandle, SpawnLogoProps>(
     const [displayText, setDisplayText] = useState("(c.ai)");
     const [labsText, setLabsText] = useState("labs");
     const [isAnimating, setIsAnimating] = useState(false);
+    const [showSVG, setShowSVG] = useState(true); // Show SVG when not animating
+    const [svgOpacity, setSvgOpacity] = useState(1); // For crossfade transition
     const [phase, setPhase] = useState<"idle" | "glitch-to" | "charge" | "burst" | "glitch-back" | "settle">("idle");
     const [scale, setScale] = useState(1);
     const [chromaOffset, setChromaOffset] = useState({ r: { x: 0, y: 0 }, b: { x: 0, y: 0 } });
@@ -89,6 +91,8 @@ export const SpawnLogo = forwardRef<SpawnLogoHandle, SpawnLogoProps>(
 
       lastSpawnRef.current = now;
       setIsAnimating(true);
+      setSvgOpacity(0); // Prepare for fade out
+      setShowSVG(false); // Switch to text for animation
 
       // Select random kaomoji for this spawn
       targetKaomojiRef.current = KAOMOJI_FACES[Math.floor(Math.random() * KAOMOJI_FACES.length)];
@@ -243,6 +247,9 @@ export const SpawnLogo = forwardRef<SpawnLogoHandle, SpawnLogoProps>(
           setShake({ x: 0, y: 0 });
           setChromaOffset({ r: { x: 0, y: 0 }, b: { x: 0, y: 0 } });
           setIsAnimating(false);
+          setShowSVG(true); // Switch back to SVG
+          // Fade in SVG smoothly
+          requestAnimationFrame(() => setSvgOpacity(1));
           return;
         }
 
@@ -276,50 +283,71 @@ export const SpawnLogo = forwardRef<SpawnLogoHandle, SpawnLogoProps>(
           transition: phase === "idle" ? "transform 0.15s ease-out" : undefined,
         }}
       >
-        {/* Red chromatic layer */}
-        {(chromaOffset.r.x !== 0 || chromaOffset.r.y !== 0) && (
-          <span
-            className="font-mono text-[26px] absolute pointer-events-none select-none"
+        {showSVG ? (
+          /* SVG logo when idle */
+          <img
+            src="/logo.svg"
+            alt="(c.ai)labs"
+            className="dark:brightness-0 dark:invert"
+            draggable={false}
+            onContextMenu={(e) => e.preventDefault()}
             style={{
-              color: "rgba(255, 0, 0, 0.5)",
-              transform: `translate(${chromaOffset.r.x}px, ${chromaOffset.r.y}px)`,
-              mixBlendMode: "screen",
-            }}
-          >
-            {displayText}
-            {labsText && <span className="ml-1">{labsText}</span>}
-          </span>
-        )}
+              height: "26px",
+              opacity: svgOpacity,
+              transition: "opacity 150ms ease-out",
+              userSelect: "none",
+              WebkitUserDrag: "none",
+              pointerEvents: "none",
+            } as React.CSSProperties}
+          />
+        ) : (
+          <>
+            {/* Red chromatic layer */}
+            {(chromaOffset.r.x !== 0 || chromaOffset.r.y !== 0) && (
+              <span
+                className="font-mono text-[26px] absolute pointer-events-none select-none"
+                style={{
+                  color: "rgba(255, 0, 0, 0.5)",
+                  transform: `translate(${chromaOffset.r.x}px, ${chromaOffset.r.y}px)`,
+                  mixBlendMode: "screen",
+                }}
+              >
+                {displayText}
+                {labsText && <span className="ml-1">{labsText}</span>}
+              </span>
+            )}
 
-        {/* Blue chromatic layer */}
-        {(chromaOffset.b.x !== 0 || chromaOffset.b.y !== 0) && (
-          <span
-            className="font-mono text-[26px] absolute pointer-events-none select-none"
-            style={{
-              color: "rgba(0, 100, 255, 0.5)",
-              transform: `translate(${chromaOffset.b.x}px, ${chromaOffset.b.y}px)`,
-              mixBlendMode: "screen",
-            }}
-          >
-            {displayText}
-            {labsText && <span className="ml-1">{labsText}</span>}
-          </span>
-        )}
+            {/* Blue chromatic layer */}
+            {(chromaOffset.b.x !== 0 || chromaOffset.b.y !== 0) && (
+              <span
+                className="font-mono text-[26px] absolute pointer-events-none select-none"
+                style={{
+                  color: "rgba(0, 100, 255, 0.5)",
+                  transform: `translate(${chromaOffset.b.x}px, ${chromaOffset.b.y}px)`,
+                  mixBlendMode: "screen",
+                }}
+              >
+                {displayText}
+                {labsText && <span className="ml-1">{labsText}</span>}
+              </span>
+            )}
 
-        {/* Main text layer */}
-        <span
-          className="font-mono text-[26px]"
-          style={{ color: "var(--color-primary)" }}
-        >
-          {displayText}
-        </span>
-        {labsText && (
-          <span
-            className="font-mono text-[26px]"
-            style={{ color: "var(--color-primary)" }}
-          >
-            {labsText}
-          </span>
+            {/* Main text layer */}
+            <span
+              className="font-mono text-[26px]"
+              style={{ color: "var(--color-primary)" }}
+            >
+              {displayText}
+            </span>
+            {labsText && (
+              <span
+                className="font-mono text-[26px]"
+                style={{ color: "var(--color-primary)" }}
+              >
+                {labsText}
+              </span>
+            )}
+          </>
         )}
       </div>
     );
