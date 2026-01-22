@@ -7,7 +7,7 @@ export function CommunitySection() {
   return (
     <section className="py-16 md:py-24">
       {/* Section Header - white background */}
-      <div className="mb-10 md:mb-16 px-2 md:px-11 text-center">
+      <div className="mb-10 md:mb-16 px-4 md:px-8 text-center">
         <h2
           className="font-semibold text-[32px] md:text-[48px] leading-[1] tracking-[-0.64px] md:tracking-[-0.96px] mb-3"
           style={{ color: "var(--color-on-background)" }}

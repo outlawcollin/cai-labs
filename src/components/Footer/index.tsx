@@ -10,21 +10,18 @@ interface FooterProps {
 export function Footer({ className = "" }: FooterProps) {
   return (
     <footer
-      className={`pt-8 md:pt-11 px-6 md:px-11 ${className}`}
+      className={`pt-8 md:pt-11 px-4 md:px-8 ${className}`}
       style={{ backgroundColor: "var(--color-background)" }}
     >
       {/* CTA Row */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between pb-6 gap-5">
+      <div className="flex flex-col md:flex-row md:items-start justify-between pb-6 gap-5">
         {/* CTA Text */}
         <div className="flex-1">
           <p
-            className="font-medium text-lg md:text-2xl leading-7 md:leading-8"
+            className="font-medium text-lg md:text-2xl leading-7 md:leading-8 max-w-md md:max-w-lg"
             style={{ color: "var(--color-on-background)" }}
           >
-            Try the experiments. Break things. Tell us what works.
-            <br className="hidden md:block" />
-            <span className="md:hidden"> </span>
-            You are helping decide what Character.ai becomes next.
+            Try the experiments. Break things. Tell us what works. You are helping decide what Character.ai becomes next.
           </p>
         </div>
 

@@ -516,14 +516,14 @@ export default function Home() {
       <div
         className="relative"
         style={{
-          height: isMobile ? "calc(100vh - 180px)" : `${500 * heightScale}px`,
+          height: isMobile ? "calc(100vh - 280px)" : `${500 * heightScale}px`,
         }}
       >
         {/* Hero Text - centered vertically on mobile */}
         <div
-          className="absolute left-1/2 w-full text-center transition-all duration-300 px-2 md:px-4"
+          className="absolute left-1/2 w-full max-w-lg md:max-w-3xl text-center transition-all duration-300 px-4 md:px-8"
           style={{
-            top: isMobile ? "56%" : `${220 * heightScale}px`,
+            top: isMobile ? "60%" : `${220 * heightScale}px`,
             opacity: intro.isComplete ? (isMobile ? 1 : (1 - textEasedProgress)) : 1,
             transform: isMobile
               ? "translateX(-50%) translateY(-50%)"
@@ -532,19 +532,17 @@ export default function Home() {
         >
           <h1
             ref={titleRef}
-            className="font-semibold text-[36px] md:text-[72px] leading-[1] tracking-[-0.72px] md:tracking-[-1.44px] mb-4 md:mb-5"
+            className="font-semibold text-[48px] md:text-[72px] leading-[1] tracking-[-0.96px] md:tracking-[-1.44px] mb-4 md:mb-5"
             style={{
               color: "var(--color-primary)",
               opacity: intro.taglineOpacity,
               transform: `translateY(${intro.taglineTranslateY}px)`,
             }}
           >
-            be the first to play
-            <br />
-            with what&apos;s next
+            be the first to play with what&apos;s next
           </h1>
           <p
-            className="font-medium text-[18px] md:text-[30px] leading-normal max-w-[700px] mx-auto"
+            className="font-normal text-[24px] md:text-[30px] leading-normal md:max-w-[700px] mx-auto"
             style={{
               color: "var(--color-primary)",
               opacity: intro.subtitleOpacity,
@@ -560,7 +558,7 @@ export default function Home() {
       <div ref={containerRef} style={{ overflow: "visible" }}>
           {/* Section Title - desktop only, appears when scrolled (delayed fade-in) */}
           <div
-            className="hidden md:block mb-10 md:mb-16 px-11 text-center relative"
+            className="hidden md:block px-8 text-center relative"
             style={{
               opacity: sectionTitleEasedProgress,
               transform: `translateY(${(1 - sectionTitleEasedProgress) * 30}px)`,
@@ -577,7 +575,7 @@ export default function Home() {
               fresh experiments
             </h2>
             <p
-              className="font-medium text-[20px] leading-normal"
+              className="font-normal text-[20px] leading-normal"
               style={{ color: "var(--color-on-background)" }}
             >
               Prototypes we are actively building, testing, and learning from.
@@ -590,7 +588,7 @@ export default function Home() {
           {/* Use conditional render (not CSS hide) so refs point to correct elements */}
           {isMobile && (
           <div
-            className="flex flex-col gap-2 px-2"
+            className="flex flex-col gap-2 px-4"
             style={{ minHeight: `${experiments.length * 300 + (experiments.length - 1) * 8}px` }}
           >
             {experiments.map((experiment, index) => {

@@ -30,6 +30,7 @@ interface ExperimentCardProps {
   imageAlt?: string;
   onHoverStart?: () => void;
   isMobile?: boolean;
+  className?: string;
 }
 
 interface VariantStyle {
@@ -140,6 +141,7 @@ export function ExperimentCard({
   imageAlt = "Experiment preview",
   onHoverStart,
   isMobile = false,
+  className,
 }: ExperimentCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const styles = variantStyles[variant];
@@ -174,14 +176,14 @@ export function ExperimentCard({
       <Link
         href={href}
         draggable={false}
-        className="flex p-1 rounded-3xl overflow-hidden h-[300px]"
+        className="flex gap-3 p-3 rounded-3xl overflow-hidden h-[300px]"
         style={{
           backgroundColor: styles.background,
         }}
         onDragStart={(e) => e.preventDefault()}
       >
         {/* Text content */}
-        <div className="flex-1 flex flex-col gap-1 p-1">
+        <div className="flex-1 flex flex-col gap-2">
           {/* Title with optional tag */}
           <div className="flex items-start gap-2">
             <h2
@@ -207,7 +209,7 @@ export function ExperimentCard({
 
           {/* Description */}
           <p
-            className="font-medium text-[12px] leading-[16px] line-clamp-5"
+            className="font-normal text-[16px] leading-[20px] line-clamp-5"
             style={{ color: styles.text }}
           >
             {description}
@@ -252,7 +254,7 @@ export function ExperimentCard({
     <Link
       href={href}
       draggable={false}
-      className="flex flex-col gap-4 w-[420px] h-[640px] pt-2 pb-3 px-3 rounded-3xl overflow-hidden"
+      className={`flex flex-col gap-4 w-[420px] h-[640px] pt-2 pb-3 px-3 rounded-3xl overflow-hidden ${className || ""}`}
       style={{
         backgroundColor: isHovered ? styles.backgroundHover : styles.background,
         transform: isHovered ? "scale(1.02)" : "scale(1)",
@@ -296,7 +298,7 @@ export function ExperimentCard({
 
         {/* Description */}
         <p
-          className="font-medium text-[16px] leading-[22px] transition-colors duration-200"
+          className="font-normal text-[18px] leading-[24px] transition-colors duration-200"
           style={{ color: isHovered ? styles.textHover : styles.text }}
         >
           {description}

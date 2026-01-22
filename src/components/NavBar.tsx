@@ -52,9 +52,10 @@ function DiscordIcon() {
 interface NavBarProps {
   navOpacity?: number;
   onMobileMenuChange?: (isOpen: boolean) => void;
+  showLogo?: boolean;
 }
 
-export function NavBar({ navOpacity = 1, onMobileMenuChange }: NavBarProps) {
+export function NavBar({ navOpacity = 1, onMobileMenuChange, showLogo = false }: NavBarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const textColor = "var(--color-on-surface)";
 
@@ -72,12 +73,12 @@ export function NavBar({ navOpacity = 1, onMobileMenuChange }: NavBarProps) {
   return (
     <>
       <nav
-        className="fixed left-0 right-0 z-50 flex items-center px-6 md:px-11 py-4 md:py-5 transition-all duration-300"
+        className="fixed left-0 right-0 z-50 flex items-center px-4 lg:px-8 py-4 lg:py-5 transition-all duration-300"
         style={{ backgroundColor: "var(--color-background)" }}
       >
         {/* Hamburger Menu Button - mobile only */}
         <button
-          className="md:hidden p-2 -ml-2 z-50"
+          className="lg:hidden p-2 -ml-2 z-50"
           onClick={toggleMobileMenu}
           aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
           style={{ color: textColor, opacity: navOpacity }}
@@ -85,9 +86,25 @@ export function NavBar({ navOpacity = 1, onMobileMenuChange }: NavBarProps) {
           <HamburgerIcon isOpen={mobileMenuOpen} />
         </button>
 
+        {/* Centered Logo - for subpages */}
+        {showLogo && (
+          <Link
+            href="/"
+            className="absolute left-1/2 -translate-x-1/2 hover:opacity-70 transition-opacity"
+            style={{ opacity: navOpacity }}
+          >
+            <img
+              src="/logo.svg"
+              alt="(c.ai)labs"
+              className="h-[22px] md:h-[26px] dark:brightness-0 dark:invert"
+              draggable={false}
+            />
+          </Link>
+        )}
+
         {/* Nav Links - desktop only */}
         <div
-          className="hidden md:flex gap-4 items-center flex-1"
+          className="hidden lg:flex gap-4 items-center flex-1"
           style={{ opacity: navOpacity }}
         >
           {navLinks.map((link) => (
@@ -105,12 +122,9 @@ export function NavBar({ navOpacity = 1, onMobileMenuChange }: NavBarProps) {
           ))}
         </div>
 
-        {/* Spacer for mobile to push social links to right */}
-        <div className="flex-1 md:hidden" />
-
-        {/* Social Links - always visible */}
+        {/* Social Links - desktop only (shown in mobile menu when open) */}
         <div
-          className="flex gap-4 items-center flex-1 justify-end pr-0 md:pr-4"
+          className="hidden lg:flex gap-4 items-center flex-1 justify-end pr-4"
           style={{ opacity: navOpacity }}
         >
           <a
@@ -142,7 +156,7 @@ export function NavBar({ navOpacity = 1, onMobileMenuChange }: NavBarProps) {
 
       {/* Mobile Menu Overlay */}
       <div
-        className={`fixed inset-0 z-40 md:hidden transition-all duration-300 ${
+        className={`fixed inset-0 z-40 lg:hidden transition-all duration-300 ${
           mobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
         style={{ backgroundColor: "var(--color-background)" }}

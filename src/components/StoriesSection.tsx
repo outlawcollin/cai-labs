@@ -14,7 +14,7 @@ export function StoriesSection({ stories }: StoriesSectionProps) {
   return (
     <div className="mt-32 mb-24">
       {/* Section Header */}
-      <div className="mb-10 md:mb-16 px-2 md:px-11 text-center">
+      <div className="mb-10 md:mb-16 px-4 md:px-8 text-center">
         <h2
           className="font-semibold text-[32px] md:text-[48px] leading-[1] tracking-[-0.64px] md:tracking-[-0.96px] mb-3"
           style={{ color: "var(--color-on-background)" }}
@@ -30,7 +30,7 @@ export function StoriesSection({ stories }: StoriesSectionProps) {
       </div>
 
       {/* Mobile: Vertical stack of cards */}
-      <div className="md:hidden flex flex-col gap-4 px-2">
+      <div className="md:hidden flex flex-col gap-4 px-4">
         {stories.map((story) => (
           <StoryCard key={story.id} story={story} isMobile={true} />
         ))}
@@ -77,7 +77,7 @@ export function StoriesSection({ stories }: StoriesSectionProps) {
         }}
       >
         <div
-          className="flex gap-5 px-11 py-4"
+          className="flex gap-5 px-8 py-4"
           style={{
             width: `${88 + stories.length * CARD_WIDTH + (stories.length - 1) * CARD_GAP}px`,
           }}
