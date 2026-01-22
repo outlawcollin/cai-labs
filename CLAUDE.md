@@ -184,3 +184,23 @@ npm run lint   # Run ESLint
 ### Attempted but Reverted
 - Moving NavBar/Footer to layout.tsx with React Context for visibility control - reverted due to complexity
 - Hover color change on nav links using CSS variables - reverted to 70% opacity due to Tailwind/inline style conflicts
+
+### Footer Logo Glitch Effect Fix
+- Added font smoothing CSS to `FooterLogo.tsx` `renderCharacters` function:
+  - `WebkitFontSmoothing: "antialiased"`
+  - `MozOsxFontSmoothing: "grayscale"`
+  - `textRendering: "geometricPrecision"`
+- Increased initial character opacity from 0.6 → 0.8
+- Fixes blurry text appearance at start of glitch animation
+
+### Stories Page Breakpoint
+- Changed `isMobile` breakpoint from `768px` to `1024px` in `src/app/stories/page.tsx`
+- Two-column grid now only appears on larger screens where cards have room
+
+### Community Page Responsive Layouts
+- Added intermediate 2-column layout for tablet sizes (640px - 1024px)
+- Three breakpoints now:
+  - Below 640px: 1 column (mobile)
+  - 640px - 1024px: 2 columns (tablet)
+  - 1024px+: 4 columns (desktop)
+- Tablet layout merges col1+col3 into left column, col2+col4 into right column

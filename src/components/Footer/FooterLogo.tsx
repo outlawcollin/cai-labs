@@ -57,7 +57,7 @@ export function FooterLogo() {
     setCharacters(
       LOGO_CHARS.map(() => ({
         char: getGlitchChar(),
-        opacity: 0.6,
+        opacity: 0.8,
       }))
     );
 
@@ -164,7 +164,10 @@ export function FooterLogo() {
         fontSize: "calc((100vw - 88px) / 4.59)",
         color: color || "var(--color-primary)",
         transform: offsetX ? `translateX(${offsetX}px)` : undefined,
-      }}
+        WebkitFontSmoothing: "antialiased",
+        MozOsxFontSmoothing: "grayscale",
+        textRendering: "geometricPrecision",
+      } as React.CSSProperties}
     >
       {/* "(c.ai)" part - Character Sans font */}
       <span style={{ fontFamily: '"Character Sans", sans-serif' }}>

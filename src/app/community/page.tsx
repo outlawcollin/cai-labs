@@ -25,12 +25,17 @@ export default function CommunityPage() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const isMobile = windowWidth < 768;
+  const isMobile = windowWidth < 640;
+  const isTablet = windowWidth >= 640 && windowWidth < 1024;
 
   const col1 = getCreationsForColumn(column1Ids);
   const col2 = getCreationsForColumn(column2Ids);
   const col3 = getCreationsForColumn(column3Ids);
   const col4 = getCreationsForColumn(column4Ids);
+
+  // For tablet 2-column layout, merge columns
+  const leftCol = [...col1, ...col3];
+  const rightCol = [...col2, ...col4];
 
   return (
     <div
@@ -59,6 +64,20 @@ export default function CommunityPage() {
             {communityCreations.map((creation) => (
               <CommunityPageCard key={creation.id} creation={creation} />
             ))}
+          </div>
+        ) : isTablet ? (
+          // Tablet: 2-column masonry
+          <div className="flex gap-5">
+            <div className="flex-1 flex flex-col gap-5">
+              {leftCol.map((creation) => (
+                <CommunityPageCard key={creation.id} creation={creation} />
+              ))}
+            </div>
+            <div className="flex-1 flex flex-col gap-5 pt-11">
+              {rightCol.map((creation) => (
+                <CommunityPageCard key={creation.id} creation={creation} />
+              ))}
+            </div>
           </div>
         ) : (
           // Desktop: 4-column masonry with staggered offsets

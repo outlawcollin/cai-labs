@@ -94,38 +94,6 @@ export const stories: Story[] = [
     imageSrc: '/stories/story-06.png',
     featured: false,
   },
-  {
-    id: 'story-7',
-    title: 'Making comics with my kids using our family stories',
-    experiment: 'comics',
-    author: 'Lisa Park',
-    imageSrc: '/stories/story-01.png',
-    featured: false,
-  },
-  {
-    id: 'story-8',
-    title: 'Visualizing my poetry as short animated clips',
-    experiment: 'streams',
-    author: 'Ray Santos',
-    imageSrc: '/stories/story-02.png',
-    featured: false,
-  },
-  {
-    id: 'story-9',
-    title: 'Creating album art for my indie band',
-    experiment: 'image-studio',
-    author: 'Nina Volkov',
-    imageSrc: '/stories/story-03.png',
-    featured: false,
-  },
-  {
-    id: 'story-10',
-    title: 'Exploring alternate endings in classic novels',
-    experiment: 'books',
-    author: 'Tom Harris',
-    imageSrc: '/stories/story-04.png',
-    featured: false,
-  },
 ];
 
 // Helper to get featured stories
