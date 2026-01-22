@@ -164,6 +164,12 @@ export function useHomeIntro(options: UseHomeIntroOptions = {}) {
   const hasCompletedRef = useRef(reducedMotion);
   const glitchIntervalRef = useRef<number | null>(null);
 
+  // Use refs for values used in animate to prevent callback recreation
+  const cardCountRef = useRef(cardCount);
+  cardCountRef.current = cardCount;
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
+
   const animate = useCallback((timestamp: number) => {
     if (startTimeRef.current === null) {
       startTimeRef.current = timestamp;
@@ -184,7 +190,7 @@ export function useHomeIntro(options: UseHomeIntroOptions = {}) {
     let taglineTranslateY = 30;
     let subtitleOpacity = 0;
     let subtitleTranslateY = 30;
-    let cardProgress = Array(cardCount).fill(0);
+    let cardProgress = Array(cardCountRef.current).fill(0);
     let isGlitching = false;
     let glitchOffset = 0;
     let phase: HomeIntroState["phase"] = "kaomoji";
@@ -308,7 +314,7 @@ export function useHomeIntro(options: UseHomeIntroOptions = {}) {
       taglineTranslateY = 0;
       subtitleOpacity = 1;
       subtitleTranslateY = 0;
-      cardProgress = Array(cardCount).fill(1);
+      cardProgress = Array(cardCountRef.current).fill(1);
     }
 
     const isComplete = elapsed >= TIMELINE.animationComplete;
@@ -335,13 +341,13 @@ export function useHomeIntro(options: UseHomeIntroOptions = {}) {
 
     if (isComplete && !hasCompletedRef.current) {
       hasCompletedRef.current = true;
-      onComplete?.();
+      onCompleteRef.current?.();
     }
 
     if (!isComplete) {
       frameRef.current = requestAnimationFrame(animate);
     }
-  }, [cardCount, onComplete]);
+  }, []);
 
   // Start animation on mount
   useEffect(() => {
@@ -380,15 +386,15 @@ export function useHomeIntro(options: UseHomeIntroOptions = {}) {
       taglineTranslateY: 0,
       subtitleOpacity: 1,
       subtitleTranslateY: 0,
-      cardProgress: Array(cardCount).fill(1),
+      cardProgress: Array(cardCountRef.current).fill(1),
       isGlitching: false,
       glitchOffset: 0,
       phase: "complete",
       isComplete: true,
     });
 
-    onComplete?.();
-  }, [cardCount, onComplete]);
+    onCompleteRef.current?.();
+  }, []);
 
   return {
     ...state,
