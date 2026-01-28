@@ -43,6 +43,9 @@ interface SidebarProps {
   status: GenerationStatus;
   canGenerate: boolean;
   onGenerate: () => void;
+
+  // Mobile
+  isMobile?: boolean;
 }
 
 export default function Sidebar({
@@ -62,6 +65,7 @@ export default function Sidebar({
   status,
   canGenerate,
   onGenerate,
+  isMobile = false,
 }: SidebarProps) {
   // Modal state
   const [personaModalOpen, setPersonaModalOpen] = useState(false);
@@ -77,11 +81,15 @@ export default function Sidebar({
 
   return (
     <div
-      className="w-[440px] h-[calc(100vh-54px)] flex flex-col shrink-0"
-      style={{ backgroundColor: "var(--color-background)" }}
+      className={`${isMobile ? "w-full h-full" : "w-[420px] m-4 rounded-4xl overflow-hidden"} flex flex-col shrink-0`}
+      style={{
+        backgroundColor: isMobile ? "transparent" : "var(--color-surface)",
+        border: isMobile ? "none" : "1px solid var(--color-outline-variant)",
+        height: isMobile ? "100%" : "calc(100vh - 54px - 32px)",
+      }}
     >
       {/* Scrollable Content Area */}
-      <div className="flex-1 overflow-y-auto px-4">
+      <div className="flex-1 overflow-y-auto px-4 scrollbar-hide">
         {/* Title */}
         <div className="py-4">
           <h1
@@ -96,7 +104,7 @@ export default function Sidebar({
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-3">
             <span
-              className="text-lg"
+              className="text-base font-medium"
               style={{ color: "var(--color-on-surface)" }}
             >
               who&apos;s in the image
@@ -104,7 +112,7 @@ export default function Sidebar({
             <Tooltip content="Select who appears in your generated image" position="right" />
           </div>
 
-          <ModeSelector mode={mode} onModeChange={onModeChange} />
+          <ModeSelector mode={mode} onModeChange={onModeChange} isMobile={isMobile} />
 
           {/* Persona Picker */}
           {showPersonaPicker && (
@@ -121,7 +129,7 @@ export default function Sidebar({
           {showCharacterPicker && (
             <div className="mt-4">
               <CharacterPicker
-                label={showCharacter2Picker ? "Select Character 1" : "Select Character"}
+                label={showCharacter2Picker ? "select character 1" : "select character"}
                 selectedCharacter={character}
                 onSelect={onCharacterChange}
                 onBrowse={() => setCharacterModalOpen(true)}
@@ -133,7 +141,7 @@ export default function Sidebar({
           {showCharacter2Picker && (
             <div className="mt-4">
               <CharacterPicker
-                label="Select Character 2"
+                label="select character 2"
                 selectedCharacter={character2}
                 onSelect={onCharacter2Change}
                 onBrowse={() => setCharacter2ModalOpen(true)}
@@ -144,9 +152,9 @@ export default function Sidebar({
 
         {/* Details Section */}
         <div className="mb-6">
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2">
             <span
-              className="text-lg"
+              className="text-base font-medium"
               style={{ color: "var(--color-on-surface)" }}
             >
               details
@@ -172,7 +180,10 @@ export default function Sidebar({
       </div>
 
       {/* Action Bar - Sticky at bottom */}
-      <div className="p-4 shrink-0">
+      <div
+        className="p-4 shrink-0"
+        style={{ borderTop: "1px solid var(--color-outline-variant)" }}
+      >
         <CreateButton
           onClick={onGenerate}
           disabled={!canGenerate}

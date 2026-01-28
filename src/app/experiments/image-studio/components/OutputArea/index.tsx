@@ -11,6 +11,7 @@ interface OutputAreaProps {
   history: GenerationBatch[];
   onReshoot?: (batch: GenerationBatch) => void;
   onUseDetails?: (batch: GenerationBatch) => void;
+  isMobile?: boolean;
 }
 
 export default function OutputArea({
@@ -19,6 +20,7 @@ export default function OutputArea({
   history,
   onReshoot,
   onUseDetails,
+  isMobile = false,
 }: OutputAreaProps) {
   // Show empty state when idle and no history
   const showEmptyState = status === "idle" && history.length === 0;
@@ -38,10 +40,10 @@ export default function OutputArea({
 
       {showLoadingState && (
         <div className="h-full flex flex-col items-center justify-center">
-          {/* Loading placeholder - 4 loading cards */}
-          <div className="flex gap-3 mb-8">
-            {[1, 2, 3, 4].map((i) => (
-              <ImageCard key={i} isLoading />
+          {/* Loading placeholder - 4 loading cards (1 on mobile) */}
+          <div className={`flex ${isMobile ? "flex-col px-4 w-full" : "flex-row"} gap-3 mb-8`}>
+            {(isMobile ? [1] : [1, 2, 3, 4]).map((i) => (
+              <ImageCard key={i} isLoading isMobile={isMobile} />
             ))}
           </div>
           <p style={{ color: "var(--color-on-surface-variant)" }}>
@@ -59,6 +61,7 @@ export default function OutputArea({
                 batch={currentBatch}
                 onReshoot={() => onReshoot?.(currentBatch)}
                 onUseDetails={() => onUseDetails?.(currentBatch)}
+                isMobile={isMobile}
               />
             </div>
           )}
@@ -82,6 +85,7 @@ export default function OutputArea({
                       batch={batch}
                       onReshoot={() => onReshoot?.(batch)}
                       onUseDetails={() => onUseDetails?.(batch)}
+                      isMobile={isMobile}
                     />
                   )}
                 </div>

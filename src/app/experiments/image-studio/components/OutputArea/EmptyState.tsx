@@ -1,15 +1,19 @@
 "use client";
 
+import Image from "next/image";
+
 export default function EmptyState() {
   return (
     <div className="h-full flex flex-col items-center justify-center">
-      {/* Mascot placeholder */}
-      <div
-        className="w-[170px] h-[170px] rounded-2xl mb-4 flex items-center justify-center"
-        style={{ backgroundColor: "var(--color-surface-variant)" }}
-      >
-        {/* TODO: Replace with actual mascot image */}
-        <span className="text-6xl">🐱</span>
+      {/* Mascot image */}
+      <div className="w-[170px] h-[170px] relative mb-4">
+        <Image
+          src="/image-studio/background/bg_image.png"
+          alt="Cat mascot"
+          fill
+          className="object-contain"
+          sizes="170px"
+        />
       </div>
 
       {/* Text */}

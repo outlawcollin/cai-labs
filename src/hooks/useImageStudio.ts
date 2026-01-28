@@ -12,6 +12,7 @@ import type {
   GenerationBatch,
   ImageStudioState,
 } from "@/app/experiments/image-studio/types";
+import { defaultOptions } from "@/app/experiments/image-studio/data";
 
 interface UseImageStudioReturn {
   // State
@@ -46,7 +47,7 @@ const initialState: ImageStudioState = {
   persona: null,
   character: null,
   character2: null,
-  selectedOptions: {},
+  selectedOptions: defaultOptions,
   status: "idle",
   currentBatch: null,
   history: [],
@@ -106,12 +107,12 @@ export function useImageStudio(): UseImageStudioReturn {
           },
         };
       } else {
-        // Add to selection
+        // Replace selection (single-select per category)
         return {
           ...prev,
           selectedOptions: {
             ...prev.selectedOptions,
-            [option.category]: [...categoryOptions, option],
+            [option.category]: [option],
           },
         };
       }

@@ -7,6 +7,7 @@ interface ImageCardProps {
   isLoading?: boolean;
   onClick?: () => void;
   isSelected?: boolean;
+  isMobile?: boolean;
 }
 
 export function ImageCard({
@@ -14,6 +15,7 @@ export function ImageCard({
   isLoading = false,
   onClick,
   isSelected = false,
+  isMobile = false,
 }: ImageCardProps) {
   const showLoading = isLoading || !imageUrl;
 
@@ -21,7 +23,8 @@ export function ImageCard({
     <div
       onClick={onClick}
       className={`
-        relative w-[219px] h-[389px] rounded-2xl overflow-hidden
+        relative rounded-2xl overflow-hidden
+        ${isMobile ? "w-full aspect-[219/389]" : "w-[219px] h-[389px]"}
         transition-all duration-200 ease-out
         ${onClick ? "cursor-pointer" : ""}
         ${isSelected ? "ring-2 ring-[#195eff] ring-offset-2" : ""}
@@ -78,7 +81,7 @@ export function ImageCard({
             alt="Generated image"
             fill
             className="object-cover"
-            sizes="219px"
+            sizes={isMobile ? "100vw" : "219px"}
           />
           {/* Selection overlay */}
           {isSelected && (

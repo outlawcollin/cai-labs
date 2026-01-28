@@ -7,23 +7,24 @@ interface PillTabProps {
   size?: "xs" | "sm" | "md";
   icon?: React.ReactNode;
   showIcon?: boolean;
-  onDismiss?: () => void;
+  color?: string;  // Category-specific background color
+  onDismiss?: (e?: React.MouseEvent) => void;
 }
 
 const sizeStyles = {
   xs: {
     height: "20px",
-    fontSize: "10px",
+    fontSize: "11px",
     iconSize: 10,
   },
   sm: {
     height: "22px",
-    fontSize: "11px",
+    fontSize: "12px",
     iconSize: 11,
   },
   md: {
     height: "24px",
-    fontSize: "12px",
+    fontSize: "13px",
     iconSize: 12,
   },
 };
@@ -48,6 +49,7 @@ export default function PillTab({
   size = "sm",
   icon,
   showIcon = true,
+  color,
   onDismiss,
 }: PillTabProps) {
   const styles = sizeStyles[size];
@@ -57,7 +59,7 @@ export default function PillTab({
       className="inline-flex items-center gap-1 font-mono"
       style={{
         height: styles.height,
-        backgroundColor: "#195eff",
+        backgroundColor: color || "#195eff",
         color: "white",
         borderRadius: "4px",
         padding: "4px 6px",
@@ -73,7 +75,7 @@ export default function PillTab({
       {onDismiss && (
         <button
           type="button"
-          onClick={onDismiss}
+          onClick={(e) => onDismiss(e)}
           className="flex-shrink-0 ml-0.5 hover:opacity-80 transition-opacity"
           aria-label={`Remove ${label}`}
         >

@@ -9,12 +9,14 @@ interface GenerationBatchProps {
   batch: GenerationBatchType;
   onReshoot?: () => void;
   onUseDetails?: () => void;
+  isMobile?: boolean;
 }
 
 export default function GenerationBatch({
   batch,
   onReshoot,
   onUseDetails,
+  isMobile = false,
 }: GenerationBatchProps) {
   const { request, images } = batch;
 
@@ -79,18 +81,19 @@ export default function GenerationBatch({
   return (
     <div className="flex flex-col gap-4">
       {/* Image Grid */}
-      <div className="flex gap-3">
+      <div className={isMobile ? "flex flex-col gap-3" : "flex gap-3"}>
         {displayImages.slice(0, 4).map((image) => (
           <ImageCard
             key={image.id}
             imageUrl={image.url || undefined}
             isLoading={!image.url}
+            isMobile={isMobile}
           />
         ))}
       </div>
 
       {/* Metadata Row */}
-      <div className="flex items-center justify-between">
+      <div className={isMobile ? "flex flex-col gap-3" : "flex items-center justify-between"}>
         {/* Left: Starring Info */}
         <div className="flex items-center gap-2">
           {avatars.length > 0 && (
@@ -127,19 +130,19 @@ export default function GenerationBatch({
         </div>
 
         {/* Middle: Option Pills */}
-        <div className="flex items-center gap-1.5 flex-wrap justify-center">
+        <div className={isMobile ? "flex items-center gap-1.5 flex-wrap" : "flex items-center gap-1.5 flex-wrap justify-center"}>
           {optionPills.map((pill, index) => (
             <PillTab key={`${pill.category}-${index}`} label={pill.label} size="xs" />
           ))}
         </div>
 
         {/* Right: Action Buttons */}
-        <div className="flex items-center gap-2">
+        <div className={isMobile ? "flex flex-col gap-2 w-full" : "flex items-center gap-2"}>
           {onReshoot && (
             <button
               type="button"
               onClick={onReshoot}
-              className="px-3 py-1.5 text-xs font-mono rounded-md border transition-colors hover:opacity-80"
+              className={`px-3 py-1.5 text-xs font-mono rounded-md border transition-colors hover:opacity-80 ${isMobile ? "w-full" : ""}`}
               style={{
                 backgroundColor: "var(--color-surface-variant)",
                 borderColor: "var(--color-border)",
@@ -153,7 +156,7 @@ export default function GenerationBatch({
             <button
               type="button"
               onClick={onUseDetails}
-              className="px-3 py-1.5 text-xs font-mono rounded-md border transition-colors hover:opacity-80"
+              className={`px-3 py-1.5 text-xs font-mono rounded-md border transition-colors hover:opacity-80 ${isMobile ? "w-full" : ""}`}
               style={{
                 backgroundColor: "var(--color-surface-variant)",
                 borderColor: "var(--color-border)",
