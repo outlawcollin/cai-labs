@@ -12,6 +12,7 @@ interface OptionsDropdownProps {
   onToggle: () => void;
   onSelectOption: (option: OptionItem) => void;
   onRemoveOption: (optionId: string) => void;
+  hideBorder?: boolean;
 }
 
 // Category icons from /public/image-studio/icons/ - using currentColor for dynamic styling
@@ -80,6 +81,7 @@ export default function OptionsDropdown({
   onToggle,
   onSelectOption,
   onRemoveOption,
+  hideBorder = false,
 }: OptionsDropdownProps) {
   const options = mockOptions[category];
   const meta = categoryMeta[category];
@@ -92,7 +94,7 @@ export default function OptionsDropdown({
   return (
     <div
       style={{
-        borderBottom: "1px solid var(--color-surface-variant)",
+        borderBottom: hideBorder ? "none" : "1px solid var(--color-surface-variant)",
       }}
     >
       {/* Header */}
@@ -115,7 +117,7 @@ export default function OptionsDropdown({
 
         {/* Label */}
         <span
-          className="flex-1 text-left text-lg"
+          className="flex-1 text-left text-base font-normal"
           style={{ color: "var(--color-on-surface)" }}
         >
           {category}
@@ -152,7 +154,7 @@ export default function OptionsDropdown({
             transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)",
           }}
         >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="24" height="24" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M6.66699 10.6667L9.09796 8.23578C9.22813 8.10561 9.22813 7.89455 9.09796 7.76438L6.66699 5.33342" />
           </svg>
         </span>
@@ -174,10 +176,12 @@ export default function OptionsDropdown({
                 >
                   {/* Thumbnail */}
                   <div
-                    className="relative w-full aspect-square rounded-2xl overflow-hidden mb-1"
+                    className="relative w-full aspect-square rounded-4xl overflow-hidden"
                     style={{
                       backgroundColor: "var(--color-surface-variant)",
-                      border: selected ? `1px solid ${meta.pillColor}` : "1px solid var(--color-outline-variant)",
+                      border: selected
+                        ? `1.5px solid ${meta.pillColor}`
+                        : "1.5px solid color-mix(in srgb, var(--color-on-brand) 8%, transparent)",
                     }}
                   >
                     {/* Actual thumbnail image */}
@@ -189,10 +193,10 @@ export default function OptionsDropdown({
                       sizes="70px"
                     />
 
-                    {/* Selected checkmark - Subtract-2.svg with dynamic color */}
+                    {/* Selected checkmark */}
                     {selected && (
-                      <div className="absolute bottom-1 right-1">
-                        <svg width="20" height="20" viewBox="0 0 32 32" fill="none">
+                      <div className="absolute top-2 right-2">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
                           <path
                             fillRule="evenodd"
                             clipRule="evenodd"
@@ -210,11 +214,9 @@ export default function OptionsDropdown({
 
                   {/* Label */}
                   <span
-                    className="text-xs text-center truncate w-full"
+                    className="text-base font-normal mt-1 text-center truncate w-full lowercase"
                     style={{
-                      color: selected
-                        ? "var(--color-on-surface)"
-                        : "var(--color-on-surface-variant)",
+                      color: "var(--color-on-surface)",
                     }}
                   >
                     {option.label}

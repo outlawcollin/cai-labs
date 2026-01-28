@@ -13,46 +13,35 @@ interface PillTabProps {
 
 const sizeStyles = {
   xs: {
-    height: "20px",
-    fontSize: "11px",
-    iconSize: 10,
-  },
-  sm: {
     height: "22px",
-    fontSize: "12px",
-    iconSize: 11,
-  },
-  md: {
-    height: "24px",
     fontSize: "13px",
     iconSize: 12,
   },
+  sm: {
+    height: "24px",
+    fontSize: "14px",
+    iconSize: 13,
+  },
+  md: {
+    height: "26px",
+    fontSize: "15px",
+    iconSize: 14,
+  },
 };
 
-const StarIcon = ({ size }: { size: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 12 12"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M6 1L7.545 4.13L11 4.635L8.5 7.07L9.09 10.5L6 8.885L2.91 10.5L3.5 7.07L1 4.635L4.455 4.13L6 1Z"
-      fill="currentColor"
-    />
-  </svg>
-);
+// Light colors that need black text
+const lightColors = ["#00d973", "#1ebe53", "#00d9d9"];
 
 export default function PillTab({
   label,
   size = "sm",
   icon,
-  showIcon = true,
+  showIcon = false,
   color,
   onDismiss,
 }: PillTabProps) {
   const styles = sizeStyles[size];
+  const textColor = color && lightColors.includes(color.toLowerCase()) ? "black" : "white";
 
   return (
     <div
@@ -60,15 +49,15 @@ export default function PillTab({
       style={{
         height: styles.height,
         backgroundColor: color || "#195eff",
-        color: "white",
+        color: textColor,
         borderRadius: "4px",
         padding: "4px 6px",
         fontSize: styles.fontSize,
       }}
     >
-      {showIcon && (
+      {showIcon && icon && (
         <span className="flex-shrink-0">
-          {icon || <StarIcon size={styles.iconSize} />}
+          {icon}
         </span>
       )}
       <span className="whitespace-nowrap">{label}</span>

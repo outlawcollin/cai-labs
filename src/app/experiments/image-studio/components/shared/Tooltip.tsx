@@ -59,32 +59,26 @@ export default function Tooltip({ content, position = "right" }: TooltipProps) {
       <span
         ref={triggerRef}
         style={{
-          width: 16,
-          height: 16,
+          width: 18,
+          height: 18,
           display: "inline-flex",
           alignItems: "center",
           justifyContent: "center",
           cursor: "help",
         }}
       >
-        {/* info circle, tooltip.svg */}
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        {/* question-2.svg */}
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 18 18"
+          fill="none"
+          style={{ transition: "fill 150ms ease-in-out" }}
+        >
           <path
-            d="M7.16683 7.33331H8.00016L8.00016 10.8333M14.1668 7.99998C14.1668 11.4057 11.4059 14.1666 8.00016 14.1666C4.59441 14.1666 1.8335 11.4057 1.8335 7.99998C1.8335 4.59422 4.59441 1.83331 8.00016 1.83331C11.4059 1.83331 14.1668 4.59422 14.1668 7.99998Z"
-            stroke="var(--color-outline)"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <rect
-            x="7.5415"
-            y="4.875"
-            width="0.916667"
-            height="0.916667"
-            rx="0.458333"
-            fill="var(--color-outline)"
-            stroke="var(--color-outline)"
-            strokeWidth="0.25"
+            d="M9 0.9375C13.4528 0.9375 17.0625 4.54721 17.0625 9C17.0625 13.4528 13.4528 17.0625 9 17.0625C4.54721 17.0625 0.9375 13.4528 0.9375 9C0.9375 4.54721 4.54721 0.9375 9 0.9375ZM9 12C8.58578 12 8.25 12.3358 8.25 12.75C8.25 13.1642 8.58578 13.5 9 13.5H9.0066L9.08348 13.4963C9.46163 13.4579 9.7566 13.1383 9.7566 12.75C9.7566 12.3617 9.46163 12.0421 9.08348 12.0037L9.0066 12H9ZM9 4.5C7.55025 4.5 6.375 5.67525 6.375 7.125C6.375 7.53922 6.71079 7.875 7.125 7.875C7.53922 7.875 7.875 7.53922 7.875 7.125C7.875 6.50369 8.3787 6 9 6C9.6213 6 10.125 6.50369 10.125 7.125C10.125 7.4619 9.97755 7.76467 9.74123 7.97167L9.63502 8.05373C9.35767 8.24378 9.02663 8.4981 8.76053 8.81835C8.4915 9.1422 8.25 9.58155 8.25 10.125C8.25 10.5392 8.58578 10.875 9 10.875C9.41422 10.875 9.75 10.5392 9.75 10.125C9.75 10.0472 9.78195 9.93623 9.9141 9.77708C10.0492 9.61448 10.2474 9.45262 10.4824 9.29152L10.6091 9.1992C11.2261 8.72003 11.625 7.96912 11.625 7.125C11.625 5.67525 10.4497 4.5 9 4.5Z"
+            fill={isVisible ? "var(--color-on-surface-variant)" : "var(--color-outline)"}
+            style={{ transition: "fill 150ms ease-in-out" }}
           />
         </svg>
       </span>
@@ -102,7 +96,7 @@ export default function Tooltip({ content, position = "right" }: TooltipProps) {
             opacity: isVisible ? 1 : 0,
             pointerEvents: isVisible ? "auto" : "none",
             transition: "opacity 150ms ease-in-out",
-            boxShadow: "0px 5px 15px 0px rgba(0,0,0,0.4), 0px 15px 35px 0px rgba(45,48,51,0.3)",
+            boxShadow: "0px 4px 12px rgba(0,0,0,0.15)",
           }}
         >
           {content}

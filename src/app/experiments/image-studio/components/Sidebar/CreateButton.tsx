@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 
 interface CreateButtonProps {
   onClick: () => void;
@@ -42,30 +43,14 @@ export default function CreateButton({
       {/* Credit badge when not generating */}
       {!isGenerating && (
         <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-white/20">
-          {/* Credit icon */}
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 14 14"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className="text-white"
-          >
-            <circle
-              cx="7"
-              cy="7"
-              r="6"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            />
-            <path
-              d="M7 4V7L9 9"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          {/* Credits icon */}
+          <Image
+            src="/image-studio/background/Frame 2147230992.svg"
+            alt="Credits"
+            width={14}
+            height={14}
+            className="object-contain"
+          />
           <span className="text-xs font-medium">{creditCost}</span>
         </div>
       )}

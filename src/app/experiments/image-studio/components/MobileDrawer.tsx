@@ -121,8 +121,8 @@ export default function MobileDrawer({
         ref={drawerRef}
         className="fixed bottom-0 left-0 right-0 z-50 flex flex-col rounded-t-3xl"
         style={{
-          backgroundColor: "#1e1e1e",
-          boxShadow: "inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 -4px 20px rgba(0, 0, 0, 0.3)",
+          backgroundColor: "var(--color-surface)",
+          boxShadow: "0 -4px 20px rgba(0, 0, 0, 0.15)",
           height: "85vh",
           transform: getTransform(),
           transition: isDragging ? "none" : "transform 0.3s ease-out",

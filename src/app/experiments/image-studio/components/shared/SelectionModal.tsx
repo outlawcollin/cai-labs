@@ -317,6 +317,19 @@ export function SelectionModal({
                       {item.name}
                     </span>
 
+                    {/* Select button - appears on hover */}
+                    {isHovered && !isSelected && (
+                      <span
+                        className="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium"
+                        style={{
+                          backgroundColor: "var(--color-outline-variant)",
+                          color: "var(--color-on-surface)",
+                        }}
+                      >
+                        Select
+                      </span>
+                    )}
+
                     {/* Selected indicator - Subtract-2.svg */}
                     {isSelected && (
                       <div className="flex-shrink-0">

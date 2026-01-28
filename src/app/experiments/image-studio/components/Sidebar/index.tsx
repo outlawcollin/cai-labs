@@ -81,11 +81,10 @@ export default function Sidebar({
 
   return (
     <div
-      className={`${isMobile ? "w-full h-full" : "w-[420px] m-4 rounded-4xl overflow-hidden"} flex flex-col shrink-0`}
+      className={`${isMobile ? "w-full h-full" : "w-[500px] rounded-4xl overflow-hidden"} flex flex-col shrink-0`}
       style={{
         backgroundColor: isMobile ? "transparent" : "var(--color-surface)",
         border: isMobile ? "none" : "1px solid var(--color-outline-variant)",
-        height: isMobile ? "100%" : "calc(100vh - 54px - 32px)",
       }}
     >
       {/* Scrollable Content Area */}
@@ -93,10 +92,10 @@ export default function Sidebar({
         {/* Title */}
         <div className="py-4">
           <h1
-            className="text-[28px] font-medium"
-            style={{ color: "var(--color-on-surface)" }}
+            className="text-[28px] font-medium leading-tight"
+            style={{ color: "var(--color-on-brand)" }}
           >
-            create your shot
+            create your shot. make it weird.
           </h1>
         </div>
 
@@ -104,12 +103,12 @@ export default function Sidebar({
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-3">
             <span
-              className="text-base font-medium"
+              className="text-lg font-medium"
               style={{ color: "var(--color-on-surface)" }}
             >
               who&apos;s in the image
             </span>
-            <Tooltip content="Select who appears in your generated image" position="right" />
+            <Tooltip content="select who appears in your generated image" position="right" />
           </div>
 
           <ModeSelector mode={mode} onModeChange={onModeChange} isMobile={isMobile} />
@@ -121,6 +120,7 @@ export default function Sidebar({
                 selectedPersona={persona}
                 onSelect={onPersonaChange}
                 onBrowse={() => setPersonaModalOpen(true)}
+                isMobile={isMobile}
               />
             </div>
           )}
@@ -133,6 +133,7 @@ export default function Sidebar({
                 selectedCharacter={character}
                 onSelect={onCharacterChange}
                 onBrowse={() => setCharacterModalOpen(true)}
+                isMobile={isMobile}
               />
             </div>
           )}
@@ -145,6 +146,7 @@ export default function Sidebar({
                 selectedCharacter={character2}
                 onSelect={onCharacter2Change}
                 onBrowse={() => setCharacter2ModalOpen(true)}
+                isMobile={isMobile}
               />
             </div>
           )}
@@ -154,17 +156,17 @@ export default function Sidebar({
         <div className="mb-6">
           <div className="flex items-center gap-2">
             <span
-              className="text-base font-medium"
+              className="text-lg font-medium"
               style={{ color: "var(--color-on-surface)" }}
             >
               details
             </span>
-            <Tooltip content="Customize style, pose, and other options" position="right" />
+            <Tooltip content="customize style, pose, and other options" position="right" />
           </div>
 
           {/* Options dropdowns */}
           {(["style", "shot", "scene", "outfit", "pose", "gesture", "expression", "effects"] as OptionCategory[]).map(
-            (category) => (
+            (category, index, arr) => (
               <OptionsDropdown
                 key={category}
                 category={category}
@@ -173,6 +175,7 @@ export default function Sidebar({
                 onToggle={() => onToggleDropdown(category)}
                 onSelectOption={onSelectOption}
                 onRemoveOption={(optionId) => onRemoveOption(category, optionId)}
+                hideBorder={index === arr.length - 1}
               />
             )
           )}
