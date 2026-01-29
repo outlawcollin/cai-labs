@@ -57,6 +57,8 @@ export const mockOptions: Record<OptionCategory, OptionItem[]> = {
     { id: "sc3", label: "Park", thumbnail: "/image-studio/details/scene/Scene_Park 2.png", category: "scene" },
     { id: "sc4", label: "Ruins", thumbnail: "/image-studio/details/scene/Scene_Ruins 2.png", category: "scene" },
     { id: "sc5", label: "Spaceship", thumbnail: "/image-studio/details/scene/Scene_Spaceship 2.png", category: "scene" },
+    { id: "sc6", label: "Casino", thumbnail: "/image-studio/details/scene/Scene_Casino 2.png", category: "scene" },
+    { id: "sc7", label: "Stage", thumbnail: "/image-studio/details/scene/Scene_Stage 2.png", category: "scene" },
   ],
   outfit: [
     { id: "ou1", label: "Casual", thumbnail: "/image-studio/details/outfit/casual.png", category: "outfit" },
@@ -92,15 +94,19 @@ export const mockOptions: Record<OptionCategory, OptionItem[]> = {
   ],
   effects: [
     { id: "ef1", label: "Rain", thumbnail: "/image-studio/details/effects/rain.png", category: "effects" },
+    { id: "ef2", label: "Sparkles", thumbnail: "/image-studio/details/effects/sparkles.png", category: "effects" },
+    { id: "ef3", label: "Hearts", thumbnail: "/image-studio/details/effects/hearts.png", category: "effects" },
+    { id: "ef4", label: "Lightning", thumbnail: "/image-studio/details/effects/lightning.png", category: "effects" },
+    { id: "ef5", label: "Smoke", thumbnail: "/image-studio/details/effects/smoke.png", category: "effects" },
   ],
 };
 
 // Placeholder images for generation results
 export const placeholderImages = [
-  "/generated/placeholder-1.png",
-  "/generated/placeholder-2.png",
-  "/generated/placeholder-3.png",
-  "/generated/placeholder-4.png",
+  "/image-studio/background/parkbench.png",
+  "/image-studio/background/parkbench.png",
+  "/image-studio/background/parkbench.png",
+  "/image-studio/background/parkbench.png",
 ];
 
 // Default selected options (empty - no defaults)

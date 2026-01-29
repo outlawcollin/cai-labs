@@ -25,7 +25,7 @@ const MODE_OPTIONS: ModeOption[] = [
 
 export default function ModeSelector({ mode, onModeChange, isMobile }: ModeSelectorProps) {
   return (
-    <div className={`grid ${isMobile ? "grid-cols-2" : "grid-cols-4"} gap-1`}>
+    <div className="grid grid-cols-4 gap-1">
       {MODE_OPTIONS.map((option) => {
         const isSelected = mode === option.id;
         return (

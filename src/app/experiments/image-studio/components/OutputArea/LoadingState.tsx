@@ -80,11 +80,9 @@ export default function LoadingState({
   const starringText = names.join(" & ");
 
   return (
-    <div className={`h-full flex flex-col justify-start ${isMobile ? "px-4" : ""}`}>
+    <div className={`flex flex-col justify-start ${isMobile ? "px-4" : ""}`}>
       {/* Loading cards */}
-      <div
-        className={`w-full ${isMobile ? "grid grid-cols-2" : "flex flex-row"} gap-3 mb-2`}
-      >
+      <div className="w-full grid grid-cols-2 lg:grid-cols-4 gap-3 mb-2">
         {[1, 2, 3, 4].map((i) => (
           <ImageCard key={i} isLoading isMobile={isMobile} fillContainer />
         ))}
@@ -156,9 +154,11 @@ export default function LoadingState({
         {/* Cancel button */}
         <button
           onClick={onCancel}
-          className="flex items-center gap-2 px-4 py-2 rounded-full border shrink-0 transition-colors hover:bg-black/10 dark:hover:bg-white/10 cursor-pointer"
+          className={`flex items-center justify-center border shrink-0 transition-colors hover:bg-black/10 dark:hover:bg-white/10 cursor-pointer ${
+            isMobile ? "w-[38px] h-[38px] rounded-full" : "gap-2 px-4 py-2 rounded-full"
+          }`}
           style={{
-            borderColor: "var(--color-outline)",
+            borderColor: "var(--color-outline-variant)",
             color: "var(--color-on-surface)",
           }}
         >
@@ -167,7 +167,6 @@ export default function LoadingState({
             height="16"
             viewBox="0 0 24 24"
             fill="none"
-            xmlns="http://www.w3.org/2000/svg"
           >
             <path
               d="M18 6L6 18M6 6L18 18"
@@ -177,7 +176,7 @@ export default function LoadingState({
               strokeLinejoin="round"
             />
           </svg>
-          <span className="text-sm font-medium">Cancel</span>
+          {!isMobile && <span className="text-sm font-medium">Cancel</span>}
         </button>
       </div>
     </div>

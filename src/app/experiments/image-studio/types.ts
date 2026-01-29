@@ -86,6 +86,7 @@ export interface ImageStudioState {
   // Generation
   status: GenerationStatus;
   currentBatch: GenerationBatch | null;
+  pendingRequest: GenerationRequest | null;
   history: GenerationBatch[];
 
   // UI state

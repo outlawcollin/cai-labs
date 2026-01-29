@@ -204,3 +204,27 @@ npm run lint   # Run ESLint
   - 640px - 1024px: 2 columns (tablet)
   - 1024px+: 4 columns (desktop)
 - Tablet layout merges col1+col3 into left column, col2+col4 into right column
+
+## Session History (Jan 29, 2026)
+
+### Image Studio — Fullscreen Image Viewer
+- Added `ImageFullscreen.tsx` component: click a generated image to open fullscreen overlay
+- Image displays in 9:16 aspect ratio with `object-cover`, centered with padding
+- Top bar (inside image): close (X), download, and Post buttons using solid `--color-inverse-surface` styling
+- Bottom bar (inside image): starring avatars/names, option pills (desktop), Reshoot + Use Details buttons
+- Dark scrim background (`rgba(0,0,0,0.85)`), gradient overlays on top/bottom bars
+- Close via scrim click, Escape key, or X button
+- Body scroll locked while fullscreen is open
+- Wired up in `GenerationBatch.tsx` with local `fullscreenImage` state
+- Mobile: bottom action buttons are icon-only 38px circles
+
+### Image Studio — Data Updates
+- Updated placeholder images from `bg_image.png` to `parkbench.png` (both in `data.ts` and hardcoded URLs in `page.tsx`)
+- Added 4 new effects: Sparkles, Hearts, Lightning, Smoke
+- Added 2 new scenes: Casino, Stage
+
+### Image Studio — Minor Fixes
+- Reverted navbar/footer gradient experiment back to solid `backgroundColor`
+- Mobile cancel button in LoadingState now icon-only 38px circle (matches generated state buttons)
+- OutputArea history rendering: replaced `.map()` with null returns with `.filter().map()` pattern
+- Applied `--color-outline-variant` border to cancel button for consistency

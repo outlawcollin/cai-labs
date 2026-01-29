@@ -50,6 +50,7 @@ const initialState: ImageStudioState = {
   selectedOptions: defaultOptions,
   status: "idle",
   currentBatch: null,
+  pendingRequest: null,
   history: [],
   expandedDropdown: null,
 };
@@ -146,6 +147,22 @@ export function useImageStudio(): UseImageStudioReturn {
     setState((prev) => ({
       ...prev,
       status: "generating",
+      // Snapshot the current selections for the loading state
+      pendingRequest: {
+        mode: prev.mode,
+        persona: prev.persona ?? undefined,
+        character: prev.character ?? undefined,
+        character2: prev.character2 ?? undefined,
+        options: prev.selectedOptions,
+      },
+      // Move current batch into history if it exists
+      currentBatch: null,
+      // Full sidebar reset
+      persona: null,
+      character: null,
+      character2: null,
+      selectedOptions: { ...defaultOptions },
+      expandedDropdown: null,
     }));
   }, []);
 
@@ -153,6 +170,7 @@ export function useImageStudio(): UseImageStudioReturn {
     setState((prev) => ({
       ...prev,
       status: "idle",
+      pendingRequest: null,
     }));
   }, []);
 
@@ -161,6 +179,7 @@ export function useImageStudio(): UseImageStudioReturn {
       ...prev,
       status: "complete",
       currentBatch: batch,
+      pendingRequest: null,
       history: [batch, ...prev.history],
     }));
   }, []);

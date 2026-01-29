@@ -48,7 +48,7 @@ export default function PersonaPicker({
       </h3>
 
       {/* 4-item Grid: Browse + 3 avatars */}
-      <div className={`grid ${isMobile ? "grid-cols-2" : "grid-cols-4"} gap-1`}>
+      <div className="grid grid-cols-4 gap-1">
         {/* Browse Button */}
         <button
           onClick={onBrowse}

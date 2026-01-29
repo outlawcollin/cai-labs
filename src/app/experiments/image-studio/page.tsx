@@ -38,18 +38,40 @@ export default function ImageStudioPage() {
     removeOption,
     startGeneration,
     cancelGeneration,
+    completeGeneration,
     canGenerate,
   } = useImageStudio();
 
   const handleGenerate = () => {
     if (!canGenerate) return;
+
+    // Capture request before startGeneration resets state
+    const request = {
+      mode: state.mode,
+      persona: state.persona ?? undefined,
+      character: state.character ?? undefined,
+      character2: state.character2 ?? undefined,
+      options: state.selectedOptions,
+    };
+
     startGeneration();
 
     // TODO: Replace with actual API call
-    // For now, just simulate a delay
+    // Mock 6-second delay then complete with placeholder data
+    const batchId = `batch-${Date.now()}`;
     setTimeout(() => {
-      // completeGeneration would be called here with real data
-    }, 3000);
+      completeGeneration({
+        id: batchId,
+        timestamp: new Date(),
+        request,
+        images: [
+          { id: `${batchId}-1`, url: "/image-studio/background/parkbench.png", thumbnail: "" },
+          { id: `${batchId}-2`, url: "/image-studio/background/parkbench.png", thumbnail: "" },
+          { id: `${batchId}-3`, url: "/image-studio/background/parkbench.png", thumbnail: "" },
+          { id: `${batchId}-4`, url: "/image-studio/background/parkbench.png", thumbnail: "" },
+        ],
+      });
+    }, 6000);
   };
 
   // Sidebar props shared between desktop and mobile
@@ -88,11 +110,8 @@ export default function ImageStudioPage() {
             <OutputArea
               status={state.status}
               currentBatch={state.currentBatch}
+              pendingRequest={state.pendingRequest}
               history={state.history}
-              mode={state.mode}
-              persona={state.persona}
-              character={state.character}
-              character2={state.character2}
               selectedOptions={state.selectedOptions}
               onCancel={cancelGeneration}
               isMobile={false}
@@ -107,11 +126,8 @@ export default function ImageStudioPage() {
             <OutputArea
               status={state.status}
               currentBatch={state.currentBatch}
+              pendingRequest={state.pendingRequest}
               history={state.history}
-              mode={state.mode}
-              persona={state.persona}
-              character={state.character}
-              character2={state.character2}
               selectedOptions={state.selectedOptions}
               onCancel={cancelGeneration}
               isMobile={true}
