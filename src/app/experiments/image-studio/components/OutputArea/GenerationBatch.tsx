@@ -81,13 +81,14 @@ export default function GenerationBatch({
   return (
     <div className="flex flex-col gap-4">
       {/* Image Grid */}
-      <div className={isMobile ? "flex flex-col gap-3" : "flex gap-3"}>
+      <div className={isMobile ? "flex flex-row gap-3 overflow-x-auto pb-2 -mx-4 px-4" : "flex gap-3"}>
         {displayImages.slice(0, 4).map((image) => (
           <ImageCard
             key={image.id}
             imageUrl={image.url || undefined}
             isLoading={!image.url}
             isMobile={isMobile}
+            fillContainer={!isMobile}
           />
         ))}
       </div>

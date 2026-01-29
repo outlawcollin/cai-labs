@@ -1,14 +1,28 @@
 "use client";
 
-import type { GenerationStatus, GenerationBatch } from "../../types";
+import type {
+  GenerationStatus,
+  GenerationBatch,
+  ImageMode,
+  Persona,
+  Character,
+  SelectedOptions,
+} from "../../types";
 import EmptyState from "./EmptyState";
-import { ImageCard } from "../shared/ImageCard";
+import LoadingState from "./LoadingState";
 import GenerationBatchComponent from "./GenerationBatch";
 
 interface OutputAreaProps {
   status: GenerationStatus;
   currentBatch: GenerationBatch | null;
   history: GenerationBatch[];
+  // Generation context for loading state
+  mode: ImageMode;
+  persona: Persona | null;
+  character: Character | null;
+  character2: Character | null;
+  selectedOptions: SelectedOptions;
+  onCancel: () => void;
   onReshoot?: (batch: GenerationBatch) => void;
   onUseDetails?: (batch: GenerationBatch) => void;
   isMobile?: boolean;
@@ -18,6 +32,12 @@ export default function OutputArea({
   status,
   currentBatch,
   history,
+  mode,
+  persona,
+  character,
+  character2,
+  selectedOptions,
+  onCancel,
   onReshoot,
   onUseDetails,
   isMobile = false,
@@ -39,21 +59,19 @@ export default function OutputArea({
       {showEmptyState && <EmptyState />}
 
       {showLoadingState && (
-        <div className="h-full flex flex-col items-center justify-center">
-          {/* Loading placeholder - 4 loading cards (1 on mobile) */}
-          <div className={`flex ${isMobile ? "flex-col px-4 w-full" : "flex-row"} gap-3 mb-8`}>
-            {(isMobile ? [1] : [1, 2, 3, 4]).map((i) => (
-              <ImageCard key={i} isLoading isMobile={isMobile} />
-            ))}
-          </div>
-          <p style={{ color: "var(--color-on-surface-variant)" }}>
-            Generating your shots...
-          </p>
-        </div>
+        <LoadingState
+          mode={mode}
+          persona={persona}
+          character={character}
+          character2={character2}
+          selectedOptions={selectedOptions}
+          onCancel={onCancel}
+          isMobile={isMobile}
+        />
       )}
 
       {showResults && (
-        <div className="p-8">
+        <div className={isMobile ? "p-4" : "p-8"}>
           {/* Current batch */}
           {currentBatch && (
             <div className="mb-8">

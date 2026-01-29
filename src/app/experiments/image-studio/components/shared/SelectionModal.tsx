@@ -150,7 +150,7 @@ export function SelectionModal({
           {/* Close Button - Circular */}
           <button
             onClick={handleClose}
-            className="flex items-center justify-center transition-opacity hover:opacity-70"
+            className="flex items-center justify-center transition-opacity hover:opacity-70 cursor-pointer"
             style={{
               width: "38px",
               height: "38px",
@@ -227,7 +227,7 @@ export function SelectionModal({
                 <button
                   key={tab.id}
                   onClick={() => handleTabChange(tab.id)}
-                  className="rounded-full font-medium transition-colors duration-200"
+                  className="rounded-full font-medium transition-colors duration-200 cursor-pointer"
                   style={{
                     height: "44px",
                     paddingLeft: "20px",
@@ -271,7 +271,7 @@ export function SelectionModal({
                     onClick={() => handleSelect(item)}
                     onMouseEnter={() => setHoveredId(item.id)}
                     onMouseLeave={() => setHoveredId(null)}
-                    className="flex items-center gap-3 w-full rounded-3xl transition-colors duration-200"
+                    className="flex items-center gap-3 w-full rounded-3xl transition-colors duration-200 cursor-pointer"
                     style={{
                       padding: "12px",
                       backgroundColor: isHovered
@@ -294,7 +294,7 @@ export function SelectionModal({
                           alt={item.name}
                           fill
                           className="object-cover"
-                          sizes="52px"
+                          sizes="200px"
                         />
                       ) : (
                         <div

@@ -27,7 +27,7 @@ export default function CreateButton({
         h-[52px] rounded-full
         bg-[#195eff] text-white font-medium
         transition-all duration-200
-        ${isDisabled ? "opacity-50 cursor-not-allowed" : "hover:brightness-110 active:brightness-95"}
+        ${isDisabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:brightness-110 active:brightness-95"}
       `}
     >
       {/* Button text */}

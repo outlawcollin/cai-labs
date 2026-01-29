@@ -30,7 +30,7 @@ const sizeStyles = {
 };
 
 // Light colors that need black text
-const lightColors = ["#00d973", "#1ebe53", "#00d9d9"];
+const lightColors = ["#00d973", "#1ebe53", "#00d9d9", "#ffadd2", "#df91f2", "#7db4ff", "#ffe600"];
 
 export default function PillTab({
   label,
@@ -60,7 +60,7 @@ export default function PillTab({
           {icon}
         </span>
       )}
-      <span className="whitespace-nowrap">{label}</span>
+      <span className="whitespace-nowrap lowercase">{label}</span>
       {onDismiss && (
         <button
           type="button"

@@ -37,6 +37,7 @@ export default function ImageStudioPage() {
     selectOption,
     removeOption,
     startGeneration,
+    cancelGeneration,
     canGenerate,
   } = useImageStudio();
 
@@ -88,6 +89,12 @@ export default function ImageStudioPage() {
               status={state.status}
               currentBatch={state.currentBatch}
               history={state.history}
+              mode={state.mode}
+              persona={state.persona}
+              character={state.character}
+              character2={state.character2}
+              selectedOptions={state.selectedOptions}
+              onCancel={cancelGeneration}
               isMobile={false}
             />
           </div>
@@ -101,6 +108,12 @@ export default function ImageStudioPage() {
               status={state.status}
               currentBatch={state.currentBatch}
               history={state.history}
+              mode={state.mode}
+              persona={state.persona}
+              character={state.character}
+              character2={state.character2}
+              selectedOptions={state.selectedOptions}
+              onCancel={cancelGeneration}
               isMobile={true}
             />
 

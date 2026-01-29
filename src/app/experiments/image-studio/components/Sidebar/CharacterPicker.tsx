@@ -54,7 +54,7 @@ export default function CharacterPicker({
         {/* Browse Button */}
         <button
           onClick={onBrowse}
-          className="flex flex-col items-center"
+          className="flex flex-col items-center cursor-pointer"
         >
           <div
             className="aspect-square w-full rounded-2xl flex items-center justify-center"
@@ -91,7 +91,7 @@ export default function CharacterPicker({
             <button
               key={character.id}
               onClick={() => onSelect(character)}
-              className="flex flex-col items-center"
+              className="flex flex-col items-center cursor-pointer"
             >
               <div className="relative aspect-square w-full">
                 {/* Avatar Image */}
@@ -108,7 +108,8 @@ export default function CharacterPicker({
                     alt={character.name}
                     fill
                     className="object-cover"
-                    sizes="80px"
+                    sizes="200px"
+                    quality={90}
                   />
                 </div>
 

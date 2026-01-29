@@ -8,6 +8,7 @@ interface ImageCardProps {
   onClick?: () => void;
   isSelected?: boolean;
   isMobile?: boolean;
+  fillContainer?: boolean;
 }
 
 export function ImageCard({
@@ -16,15 +17,28 @@ export function ImageCard({
   onClick,
   isSelected = false,
   isMobile = false,
+  fillContainer = false,
 }: ImageCardProps) {
   const showLoading = isLoading || !imageUrl;
+
+  // Determine sizing classes
+  const getSizeClasses = () => {
+    if (fillContainer) {
+      return "flex-1 min-w-0 aspect-[9/16]";
+    }
+    if (isMobile) {
+      // Fixed width for horizontal scrolling on mobile
+      return "w-[160px] shrink-0 aspect-[9/16]";
+    }
+    return "w-[219px] h-[389px]";
+  };
 
   return (
     <div
       onClick={onClick}
       className={`
         relative rounded-2xl overflow-hidden
-        ${isMobile ? "w-full aspect-[219/389]" : "w-[219px] h-[389px]"}
+        ${getSizeClasses()}
         transition-all duration-200 ease-out
         ${onClick ? "cursor-pointer" : ""}
         ${isSelected ? "ring-2 ring-[#195eff] ring-offset-2" : ""}
@@ -35,44 +49,35 @@ export function ImageCard({
       }}
     >
       {showLoading ? (
-        <div className="absolute inset-0 flex items-center justify-center">
-          {/* Subtle inner glow effect */}
+        <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
+          {/* Animated blue glow effect */}
           <div
-            className="absolute inset-0 animate-pulse"
+            className="absolute w-[200%] h-[200%] animate-loading-glow"
             style={{
               background: `
                 radial-gradient(
                   ellipse at center,
-                  rgba(255, 255, 255, 0.08) 0%,
+                  rgba(25, 94, 255, 0.5) 0%,
+                  rgba(25, 94, 255, 0.3) 25%,
+                  rgba(25, 94, 255, 0.1) 50%,
                   transparent 70%
                 )
               `,
             }}
           />
-          {/* Loading indicator dots */}
-          <div className="flex gap-1.5">
-            <div
-              className="w-2 h-2 rounded-full animate-bounce"
-              style={{
-                backgroundColor: "var(--color-text-secondary)",
-                animationDelay: "0ms",
-              }}
-            />
-            <div
-              className="w-2 h-2 rounded-full animate-bounce"
-              style={{
-                backgroundColor: "var(--color-text-secondary)",
-                animationDelay: "150ms",
-              }}
-            />
-            <div
-              className="w-2 h-2 rounded-full animate-bounce"
-              style={{
-                backgroundColor: "var(--color-text-secondary)",
-                animationDelay: "300ms",
-              }}
-            />
-          </div>
+          {/* Secondary white pulse */}
+          <div
+            className="absolute w-full h-full animate-loading-pulse"
+            style={{
+              background: `
+                radial-gradient(
+                  ellipse at center,
+                  rgba(255, 255, 255, 0.15) 0%,
+                  transparent 60%
+                )
+              `,
+            }}
+          />
         </div>
       ) : (
         <>

@@ -32,7 +32,7 @@ export default function ModeSelector({ mode, onModeChange, isMobile }: ModeSelec
           <button
             key={option.id}
             onClick={() => onModeChange(option.id)}
-            className="flex flex-col items-center"
+            className="flex flex-col items-center cursor-pointer"
           >
             {/* Image Container */}
             <div
@@ -48,7 +48,8 @@ export default function ModeSelector({ mode, onModeChange, isMobile }: ModeSelec
                 alt={option.label}
                 fill
                 className="object-cover"
-                sizes="100px"
+                sizes="200px"
+                quality={90}
               />
 
               {/* Selected Checkmark Badge - Top Right */}

@@ -81,7 +81,7 @@ export default function ImageStudioNavBar({ credits = 500, isMobile = false }: I
       <div className="flex items-center gap-2">
         {/* Credits button with charm */}
         <button
-          className="w-[48px] h-[48px] rounded-full flex items-center justify-center transition-colors hover:bg-black/10 dark:hover:bg-white/10"
+          className="w-[48px] h-[48px] rounded-full flex items-center justify-center transition-colors hover:bg-black/10 dark:hover:bg-white/10 cursor-pointer"
           style={{
             border: "1px solid var(--color-outline-variant)",
           }}
@@ -97,7 +97,7 @@ export default function ImageStudioNavBar({ credits = 500, isMobile = false }: I
 
         {/* Notification button */}
         <button
-          className="w-[48px] h-[48px] rounded-full flex items-center justify-center transition-colors hover:bg-black/10 dark:hover:bg-white/10"
+          className="w-[48px] h-[48px] rounded-full flex items-center justify-center transition-colors hover:bg-black/10 dark:hover:bg-white/10 cursor-pointer"
           style={{
             border: "1px solid var(--color-outline-variant)",
           }}

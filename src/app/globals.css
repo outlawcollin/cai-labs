@@ -549,3 +549,33 @@ body {
     transform: translateX(var(--marquee-distance, -33.333%));
   }
 }
+
+/* Image Studio Loading Animations */
+@keyframes loading-glow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+@keyframes loading-pulse {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.animate-loading-glow {
+  animation: loading-glow 2s ease-in-out infinite;
+}
+
+.animate-loading-pulse {
+  animation: loading-pulse 1.5s ease-in-out infinite;
+  animation-delay: 0.3s;
+}

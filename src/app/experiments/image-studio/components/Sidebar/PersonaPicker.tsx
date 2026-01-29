@@ -52,7 +52,7 @@ export default function PersonaPicker({
         {/* Browse Button */}
         <button
           onClick={onBrowse}
-          className="flex flex-col items-center"
+          className="flex flex-col items-center cursor-pointer"
         >
           <div
             className="aspect-square w-full rounded-full flex items-center justify-center"
@@ -90,7 +90,7 @@ export default function PersonaPicker({
             <button
               key={persona.id}
               onClick={() => onSelect(persona)}
-              className="flex flex-col items-center"
+              className="flex flex-col items-center cursor-pointer"
             >
               <div className="relative aspect-square w-full">
                 {/* Avatar Image */}
@@ -107,7 +107,8 @@ export default function PersonaPicker({
                     alt={persona.name}
                     fill
                     className="object-cover"
-                    sizes="80px"
+                    sizes="200px"
+                    quality={90}
                   />
                 </div>
 
