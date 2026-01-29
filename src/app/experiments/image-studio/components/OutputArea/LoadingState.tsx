@@ -80,7 +80,7 @@ export default function LoadingState({
   const starringText = names.join(" & ");
 
   return (
-    <div className={`h-full flex flex-col justify-center ${isMobile ? "px-4" : ""}`}>
+    <div className={`h-full flex flex-col justify-start ${isMobile ? "px-4" : ""}`}>
       {/* Loading cards */}
       <div
         className={`w-full ${isMobile ? "grid grid-cols-2" : "flex flex-row"} gap-3 mb-2`}

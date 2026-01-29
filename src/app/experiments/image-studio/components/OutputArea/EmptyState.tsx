@@ -1,23 +1,38 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
-import CommunityModal from "../shared/CommunityModal";
+// import { useState } from "react";
+// import Image from "next/image";
+// import CommunityModal from "../shared/CommunityModal";
 
-const polaroids = [
-  { src: "/image-studio/polaroid/anime34.png", rotate: -5, offsetY: 0 },
-  { src: "/image-studio/polaroid/coolcool.png", rotate: 0, offsetY: 14 },
-  { src: "/image-studio/polaroid/old2.png", rotate: 0, offsetY: 10 },
-];
+// const polaroids = [
+//   { src: "/image-studio/polaroid/anime34.png", rotate: -5, offsetY: 0 },
+//   { src: "/image-studio/polaroid/coolcool.png", rotate: 0, offsetY: 14 },
+//   { src: "/image-studio/polaroid/old2.png", rotate: 0, offsetY: 10 },
+// ];
 
 export default function EmptyState() {
-  const [isHovered, setIsHovered] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
+  // const [isHovered, setIsHovered] = useState(false);
+  // const [modalOpen, setModalOpen] = useState(false);
 
   return (
     <div className="h-full flex flex-col items-center justify-center">
-      {/* Polaroid stack */}
-      <div className="relative h-[240px] w-[400px] mb-6">
+      {/* Mascot image */}
+      <img
+        src="/image-studio/background/bg_image.png"
+        alt=""
+        className="w-[170px] mb-4"
+      />
+
+      {/* Text */}
+      <p
+        className="text-sm"
+        style={{ color: "var(--color-on-surface-variant)" }}
+      >
+        Your shots will go here.
+      </p>
+
+      {/* Polaroid stack - commented out for now */}
+      {/* <div className="relative h-[240px] w-[400px] mb-6">
         {polaroids.map((p, i) => (
           <div
             key={p.src}
@@ -29,7 +44,6 @@ export default function EmptyState() {
               zIndex: i,
             }}
           >
-            {/* Polaroid frame */}
             <div
               className="relative overflow-hidden"
               style={{
@@ -41,7 +55,6 @@ export default function EmptyState() {
                 boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1)",
               }}
             >
-              {/* Glossy shine overlay */}
               <div
                 className="absolute inset-0 pointer-events-none"
                 style={{
@@ -49,7 +62,6 @@ export default function EmptyState() {
                   zIndex: 2,
                 }}
               />
-              {/* Subtle paper grain */}
               <div
                 className="absolute inset-0 pointer-events-none"
                 style={{
@@ -57,7 +69,6 @@ export default function EmptyState() {
                   zIndex: 1,
                 }}
               />
-              {/* Photo area */}
               <div className="relative w-full h-full overflow-hidden" style={{ zIndex: 0 }}>
                 <Image
                   src={p.src}
@@ -70,10 +81,10 @@ export default function EmptyState() {
             </div>
           </div>
         ))}
-      </div>
+      </div> */}
 
-      <div className="flex flex-col gap-1.5 items-center">
-        {/* Title row */}
+      {/* Community discovery - commented out for now */}
+      {/* <div className="flex flex-col gap-1.5 items-center">
         <div className="flex items-center">
           <span
             className="text-[18px] font-semibold"
@@ -81,8 +92,6 @@ export default function EmptyState() {
           >
             shots people won&apos;t shut up about.
           </span>
-
-          {/* Chevron icon */}
           <button
             onClick={() => setModalOpen(true)}
             onMouseEnter={() => setIsHovered(true)}
@@ -90,19 +99,10 @@ export default function EmptyState() {
             className="flex items-center justify-center cursor-pointer shrink-0 ml-1"
             aria-label="Browse community"
           >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-            >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path
                 d="M6 4L10 8L6 12"
-                stroke={
-                  isHovered
-                    ? "var(--color-on-surface)"
-                    : "var(--color-on-surface-variant)"
-                }
+                stroke={isHovered ? "var(--color-on-surface)" : "var(--color-on-surface-variant)"}
                 strokeWidth="1.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -111,24 +111,15 @@ export default function EmptyState() {
             </svg>
           </button>
         </div>
-
-        {/* Subtitle */}
         <p
           className="text-[16px] text-center leading-tight"
-          style={{
-            color: "var(--color-on-surface-variant)",
-            maxWidth: 236,
-          }}
+          style={{ color: "var(--color-on-surface-variant)", maxWidth: 236 }}
         >
           characters, personas, and stories from the community.
         </p>
-      </div>
+      </div> */}
 
-      {/* Community Modal */}
-      <CommunityModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-      />
+      {/* <CommunityModal isOpen={modalOpen} onClose={() => setModalOpen(false)} /> */}
     </div>
   );
 }
