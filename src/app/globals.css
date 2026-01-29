@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Enable class-based dark mode for Tailwind v4 */
+@variant dark (&:where(.dark, .dark *));
+
 /* Character Sans Font Family */
 @font-face {
   font-family: "Character Sans";
@@ -247,8 +250,8 @@
   --color-on-brand-container: #000000;
 
   /* Inverse */
-  --color-inverse-surface: #f3f3f3;
-  --color-inverse-on-surface: #1e1e1e;
+  --color-inverse-surface: #1e1e1e;
+  --color-inverse-on-surface: #f3f3f3;
 
   /* Elevation */
   --color-elevation-0: #fafafa;

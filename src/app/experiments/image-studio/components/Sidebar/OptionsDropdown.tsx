@@ -196,7 +196,7 @@ export default function OptionsDropdown({
                     {/* Selected checkmark */}
                     {selected && (
                       <div className="absolute top-2 right-2">
-                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                        <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
                           <path
                             fillRule="evenodd"
                             clipRule="evenodd"

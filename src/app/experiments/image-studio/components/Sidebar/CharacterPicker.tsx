@@ -76,7 +76,7 @@ export default function CharacterPicker({
             </svg>
           </div>
           <span
-            className="text-base font-normal mt-1 text-center"
+            className="text-sm font-normal mt-1 text-center"
             style={{ color: "var(--color-on-surface)" }}
           >
             browse
@@ -115,7 +115,7 @@ export default function CharacterPicker({
                 {/* Selected Checkmark Badge */}
                 {isSelected && (
                   <div className="absolute top-2 right-2">
-                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
                       <path
                         fillRule="evenodd"
                         clipRule="evenodd"
@@ -133,7 +133,7 @@ export default function CharacterPicker({
 
               {/* Character Name */}
               <span
-                className="text-base font-normal mt-1 text-center truncate w-full lowercase"
+                className="text-sm font-normal mt-1 text-center truncate w-full lowercase"
                 style={{
                   color: "var(--color-on-surface)",
                 }}

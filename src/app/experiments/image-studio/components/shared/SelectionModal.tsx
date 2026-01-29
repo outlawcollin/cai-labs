@@ -333,7 +333,7 @@ export function SelectionModal({
                     {/* Selected indicator - Subtract-2.svg */}
                     {isSelected && (
                       <div className="flex-shrink-0">
-                        <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
+                        <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
                           <path
                             fillRule="evenodd"
                             clipRule="evenodd"

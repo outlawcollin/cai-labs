@@ -81,7 +81,7 @@ export default function Sidebar({
 
   return (
     <div
-      className={`${isMobile ? "w-full h-full" : "w-[500px] rounded-4xl overflow-hidden"} flex flex-col shrink-0`}
+      className={`${isMobile ? "w-full h-full" : "w-[400px] rounded-4xl overflow-hidden"} flex flex-col shrink-0`}
       style={{
         backgroundColor: isMobile ? "transparent" : "var(--color-surface)",
         border: isMobile ? "none" : "1px solid var(--color-outline-variant)",
@@ -95,7 +95,7 @@ export default function Sidebar({
             className="text-[28px] font-medium leading-tight"
             style={{ color: "var(--color-on-brand)" }}
           >
-            create your shot. make it weird.
+            create your shot.
           </h1>
         </div>
 
