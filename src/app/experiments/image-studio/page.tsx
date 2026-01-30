@@ -97,8 +97,8 @@ export default function ImageStudioPage() {
   return (
     <ThemeProvider>
       <div
-        className="h-screen flex flex-col overflow-hidden"
-        style={{ backgroundColor: "var(--color-background)" }}
+        className="flex flex-col overflow-hidden"
+        style={{ height: "100dvh", backgroundColor: "var(--color-background)" }}
       >
         {/* Nav Bar */}
         <ImageStudioNavBar credits={500} isMobile={isMobile} />

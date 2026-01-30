@@ -107,7 +107,7 @@ export default function ImageFullscreen({
       {/* Image container — maintains aspect ratio, fills viewport */}
       <div
         className="relative max-w-full max-h-full overflow-hidden rounded-2xl"
-        style={{ aspectRatio: "9/16" , height: "calc(100vh - 48px)", maxHeight: "calc(100vh - 48px)" }}
+        style={{ aspectRatio: "9/16" , height: "calc(100dvh - 48px)", maxHeight: "calc(100dvh - 48px)" }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* The image itself */}

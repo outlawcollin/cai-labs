@@ -127,7 +127,7 @@ export default function MobileDrawer({
         style={{
           backgroundColor: "var(--color-surface)",
           boxShadow: "0 -4px 20px rgba(0, 0, 0, 0.15)",
-          height: "85vh",
+          height: "85dvh",
           transform: getTransform(),
           transition: isDragging ? "none" : "transform 0.3s ease-out",
           overscrollBehavior: "none",
