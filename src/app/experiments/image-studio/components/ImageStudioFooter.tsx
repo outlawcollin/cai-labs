@@ -1,9 +1,33 @@
 "use client";
 
+import SubpageFooter from "@/components/SubpageFooter";
 import { useTheme } from "../context/ThemeContext";
+import { useEffect, useState } from "react";
 
 export default function ImageStudioFooter() {
   const { theme, setTheme } = useTheme();
+  const [variant, setVariant] = useState<"light" | "dark">("light");
+
+  useEffect(() => {
+    const checkDark = () => {
+      if (theme === "dark") {
+        setVariant("dark");
+      } else if (theme === "light") {
+        setVariant("light");
+      } else {
+        setVariant(window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      }
+    };
+
+    checkDark();
+
+    if (theme === "system") {
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      const handler = () => checkDark();
+      mediaQuery.addEventListener("change", handler);
+      return () => mediaQuery.removeEventListener("change", handler);
+    }
+  }, [theme]);
 
   const options = [
     { id: "light" as const, label: "Light" },
@@ -12,46 +36,31 @@ export default function ImageStudioFooter() {
   ];
 
   return (
-    <footer
-      className="flex items-center justify-between p-4 shrink-0"
-      style={{ backgroundColor: "var(--color-background)" }}
-    >
-      {/* Disclaimer */}
-      <p
-        className="text-xs tracking-tight"
-        style={{
-          fontFamily: "var(--font-mono)",
-          color: "var(--color-on-surface-variant)",
-        }}
-      >
-        Disclaimer: AI outputs may sometimes be offensive or inaccurate
-      </p>
-
-      {/* Theme Toggle */}
-      <div
-        className="flex items-center gap-2 text-xs tracking-tight"
-        style={{ fontFamily: "var(--font-mono)" }}
-      >
-        {options.map((option, index) => (
-          <span key={option.id} className="flex items-center gap-2">
-            <button
-              onClick={() => setTheme(option.id)}
-              className="transition-colors"
-              style={{
-                color:
-                  theme === option.id
-                    ? "var(--color-on-surface)"
-                    : "var(--color-on-surface-variant)",
-              }}
-            >
-              {option.label}
-            </button>
-            {index < options.length - 1 && (
-              <span style={{ color: "var(--color-on-surface-variant)" }}>/</span>
-            )}
-          </span>
-        ))}
-      </div>
-    </footer>
+    <SubpageFooter
+      variant={variant}
+      rightContent={
+        <div className="flex items-center gap-2">
+          {options.map((option, index) => (
+            <span key={option.id} className="flex items-center gap-2">
+              <button
+                onClick={() => setTheme(option.id)}
+                className="transition-colors cursor-pointer"
+                style={{
+                  color:
+                    theme === option.id
+                      ? "var(--color-on-surface)"
+                      : "var(--color-on-surface-variant)",
+                }}
+              >
+                {option.label}
+              </button>
+              {index < options.length - 1 && (
+                <span style={{ color: "var(--color-on-surface-variant)" }}>/</span>
+              )}
+            </span>
+          ))}
+        </div>
+      }
+    />
   );
 }

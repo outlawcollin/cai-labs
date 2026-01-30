@@ -266,3 +266,40 @@ npm run lint   # Run ESLint
 - Hero section: large charm image + balance count with inline SVG "C" logo using `--color-on-surface`/`--color-surface` tokens
 - Click outside or Escape to close
 - Currently disabled (onClick commented out) — ready to re-enable
+
+### Leaderboards Page
+- Built full leaderboards page at `/experiments/leaderboards` with staggered Jakub-style enter animations
+- Hero section: two-line heading + subtitle in `--color-primary`, countdown pill with live timer
+- Leaderboard rows: top 3 with colored backgrounds (`--color-toasty-amber`, `--color-alt-violet`, `--color-wired-lime`), rows 4+ with `--color-surface` bg and `--color-outline-variant` border
+- Row 3 (lime) uses `darkText` prop for black text on light background
+- Rank 4+ rows show rank number in a rounded circle with `color-mix(in srgb, var(--color-surface-variant) 50%, var(--color-surface))` fill
+- Mascot images for top 3 rows updated to new `#1(2).png`, `#2(2).png`, `#3(2).png` assets at 208px intrinsic with quality={95}
+- Inlined leaderboard logo SVG with `fill="currentColor"` and `color: var(--color-on-surface)` for theme reactivity
+- ThemeProvider + theme toggle footer (Light/Dark/System) reused from Image Studio
+- Font sizes use inline styles via `isMobile` ternary (Tailwind v4 arbitrary breakpoint values have specificity issues)
+- Countdown timer initialized as `null` to prevent hydration mismatch, renders placeholder until mounted
+- `isMobile` initialized as `null` with early return to prevent flash of desktop layout on mobile
+
+### Leaderboards — Shared SubpageNavBar & SubpageFooter
+- Extracted `SubpageNavBar` and `SubpageFooter` as shared components in `src/components/`
+- `SubpageNavBar`: supports `logoSrc` (image) or `logoNode` (JSX) for the center logo, `variant` for light/dark styling, back arrow, charms/notification/avatar buttons
+- `SubpageFooter`: disclaimer text + optional `rightContent` slot, `variant` for light/dark, mobile vertical stacking with centered text
+- Image Studio's `ImageStudioNavBar` and `ImageStudioFooter` refactored to use these shared components
+
+### Leaderboards — StaticMascot Component
+- Created `StaticMascot.tsx`: lightweight mascot renderer with eye tracking, no physics
+- Two-layer rendering: base image + eyes image with `transform: translate()` offset
+- Uses `useEyeTracking` hook with `trackingRadius: 300`, `maxOffset: 5`, `lerpFactor: 0.15`
+- RAF loop for smooth per-frame eye updates
+- Random blinking: 2500–4500ms interval, 100ms blink duration
+- `pointer-events-none` to avoid click interference
+
+### Leaderboards — Mascot Placement
+- 5 mascots placed "resting" on page elements with absolute positioning:
+  - mascot-02 (ghost) on h1: `top: -55, left: -10` — desktop only
+  - mascot-22 (orange) centered on countdown pill: `bottom: 100%` — visible on all sizes
+  - mascot-11 (purple) on row 1 (lucille): `top: -55, left: 120` — desktop only
+  - mascot-21 (yellow) on row 3 (gojo): `top: -55, right: 200` — desktop only
+  - mascot-04 (green frog) on row 6 (dispatch): `top: -55, right: 160` — desktop only
+- Only countdown pill mascot visible on mobile (others clipped or off-screen at mobile widths)
+- Navbar and h1 mascot use `animate-enter` with stagger to prevent flash-before-animation
