@@ -228,3 +228,41 @@ npm run lint   # Run ESLint
 - Mobile cancel button in LoadingState now icon-only 38px circle (matches generated state buttons)
 - OutputArea history rendering: replaced `.map()` with null returns with `.filter().map()` pattern
 - Applied `--color-outline-variant` border to cancel button for consistency
+
+## Session History (Jan 30, 2026)
+
+### Image Studio — Data Updates
+- Updated all style thumbnails from `ghost_*.jpg` to new `*.png` files; renamed "Realistic" to "Photorealistic"
+- Added Low Angle shot (sh8)
+- Added 5 new gestures: Finger Gun, Pointing, Shushing, Thinking, Waving
+- Replaced expression list (was just "Sad") with 10 expressions: Angry, Crying, Excited, Laughing, Nervous, Shy, Smiling, Smirking, Surprised, Thinking
+- Added 5 new outfits: Formal, Formalwear, School, Swimwear, Traditional
+- Added 4 new scenes: Bedroom, Cafe, Gym, Locker Room
+- Added 6 new effects: Bokeh, Fog, Motion Blur, Petals, Snow, Stars, Lens Flare; removed Smoke
+
+### Image Studio — Mobile Drawer Fixes
+- Drawer defaults to open on mobile; removed floating "+" button
+- Fixed nested scroll conflict: MobileDrawer content wrapper changed to `flex-1 min-h-0`, Sidebar handles its own scroll with `overscroll-behavior-y: contain`
+- Added body scroll lock when drawer is open
+- Added `overscroll-behavior: none` on drawer container, `touch-action: none` on drag handle
+- Removed black backdrop overlay from drawer
+- Submit button (CreateButton) stays pinned at bottom of drawer; equalized padding with `py-3` on mobile
+
+### Image Studio — SelectionModal Fixes
+- Portaled modal to `document.body` via `createPortal` to escape MobileDrawer's `transform` context
+- Replaced close icon SVG with inline version of `crossed small, delete, remove.svg` using `var(--color-on-surface)` stroke
+- Removed `transition-opacity` from close button to fix hover shift
+
+### Image Studio — Generated/Fullscreen State Updates
+- Removed detail pills from LoadingState and GenerationBatch metadata rows
+- Changed metadata row layout to `justify-between` on all screen sizes (was conditional)
+- Download/Post button hover: default `--color-on-surface` bg, hover `--color-inverse-on-surface` bg (with inverted text), using tokens for theme support
+- Removed entire bottom bar from ImageFullscreen (starring, pills, reshoot/use details)
+- Removed `hover:opacity-80` from fullscreen Download/Post buttons
+
+### Image Studio — Charms Dropdown
+- Created `CharmsModal.tsx`: dropdown positioned below navbar charms button
+- Shows "Charms" header with gift/add icon buttons (44px, hover state with token colors)
+- Hero section: large charm image + balance count with inline SVG "C" logo using `--color-on-surface`/`--color-surface` tokens
+- Click outside or Escape to close
+- Currently disabled (onClick commented out) — ready to re-enable

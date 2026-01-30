@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useTheme } from "../context/ThemeContext";
 import { useEffect, useState } from "react";
+import CharmsModal from "./CharmsModal";
 
 interface ImageStudioNavBarProps {
   credits?: number;
@@ -13,6 +14,7 @@ interface ImageStudioNavBarProps {
 export default function ImageStudioNavBar({ credits = 500, isMobile = false }: ImageStudioNavBarProps) {
   const { theme } = useTheme();
   const [isDark, setIsDark] = useState(false);
+  const [charmsOpen, setCharmsOpen] = useState(false);
 
   useEffect(() => {
     const checkDark = () => {
@@ -80,20 +82,28 @@ export default function ImageStudioNavBar({ credits = 500, isMobile = false }: I
       {/* Right: Actions */}
       <div className="flex items-center gap-2">
         {/* Credits button with charm */}
-        <button
-          className="w-[48px] h-[48px] rounded-full flex items-center justify-center transition-colors hover:bg-black/10 dark:hover:bg-white/10 cursor-pointer"
-          style={{
-            border: "1px solid var(--color-outline-variant)",
-          }}
-        >
-          <Image
-            src="/image-studio/background/Charms_Default_A02_1.png"
-            alt="Credits"
-            width={48}
-            height={48}
-            className="w-[28px] h-[28px] object-contain"
+        <div className="relative">
+          <button
+            // onClick={() => setCharmsOpen(!charmsOpen)}
+            className="w-[48px] h-[48px] rounded-full flex items-center justify-center transition-colors hover:bg-black/10 dark:hover:bg-white/10 cursor-pointer"
+            style={{
+              border: "1px solid var(--color-outline-variant)",
+            }}
+          >
+            <Image
+              src="/image-studio/background/Charms_Default_A02_1.png"
+              alt="Credits"
+              width={48}
+              height={48}
+              className="w-[28px] h-[28px] object-contain"
+            />
+          </button>
+          <CharmsModal
+            isOpen={charmsOpen}
+            onClose={() => setCharmsOpen(false)}
+            charmsBalance={14}
           />
-        </button>
+        </div>
 
         {/* Notification button */}
         <button
@@ -133,6 +143,7 @@ export default function ImageStudioNavBar({ credits = 500, isMobile = false }: I
           />
         </div>
       </div>
+
     </nav>
   );
 }

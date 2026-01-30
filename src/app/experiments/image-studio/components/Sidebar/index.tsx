@@ -184,7 +184,7 @@ export default function Sidebar({
 
       {/* Action Bar - Sticky at bottom */}
       <div
-        className="p-4 shrink-0"
+        className={`px-4 shrink-0 ${isMobile ? "py-3" : "p-4"}`}
         style={{ borderTop: "1px solid var(--color-outline-variant)" }}
       >
         <CreateButton
