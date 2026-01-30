@@ -88,7 +88,7 @@ export default function Sidebar({
       }}
     >
       {/* Scrollable Content Area */}
-      <div className="flex-1 overflow-y-auto px-4 scrollbar-hide">
+      <div className={`flex-1 ${isMobile ? "" : "overflow-y-auto"} px-4 scrollbar-hide`}>
         {/* Title */}
         <div className="py-4">
           <h1

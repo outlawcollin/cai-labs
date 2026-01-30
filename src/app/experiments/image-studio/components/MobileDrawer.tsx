@@ -20,6 +20,18 @@ export default function MobileDrawer({
   const drawerRef = useRef<HTMLDivElement>(null);
   const startYRef = useRef(0);
 
+  // Body scroll lock when drawer is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
   // Handle drag start
   const handleDragStart = (clientY: number) => {
     setIsDragging(true);
@@ -126,24 +138,33 @@ export default function MobileDrawer({
           height: "85vh",
           transform: getTransform(),
           transition: isDragging ? "none" : "transform 0.3s ease-out",
+          overscrollBehavior: "none",
         }}
       >
-        {/* Drag Handle */}
+        {/* Header with drag handle and close button */}
         <div
-          className="flex items-center justify-center py-3 cursor-grab active:cursor-grabbing shrink-0"
+          className="flex items-center justify-between px-4 py-3 shrink-0 cursor-grab active:cursor-grabbing"
+          style={{ touchAction: "none" }}
           onMouseDown={handleMouseDown}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleDragEnd}
         >
-          <div
-            className="w-10 h-1 rounded-full"
-            style={{ backgroundColor: "var(--color-surface-variant)" }}
-          />
+          {/* Drag handle bar */}
+          <div className="flex-1 flex justify-center">
+            <div
+              className="w-10 h-1 rounded-full"
+              style={{ backgroundColor: "var(--color-surface-variant)" }}
+            />
+          </div>
+
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto">
+        <div
+          className="flex-1 overflow-y-auto"
+          style={{ overscrollBehaviorY: "contain" }}
+        >
           {children}
         </div>
       </div>

@@ -12,7 +12,7 @@ import { ThemeProvider } from "./context/ThemeContext";
 export default function ImageStudioPage() {
   // Mobile detection
   const [isMobile, setIsMobile] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(true);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -132,29 +132,6 @@ export default function ImageStudioPage() {
               onCancel={cancelGeneration}
               isMobile={true}
             />
-
-            {/* Floating Create Button */}
-            <button
-              onClick={() => setDrawerOpen(true)}
-              className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-[#195eff] text-white shadow-lg flex items-center justify-center"
-              style={{ boxShadow: "0 4px 20px rgba(25, 94, 255, 0.4)" }}
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M12 5V19M5 12H19"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
 
             {/* Bottom Drawer with Sidebar */}
             <MobileDrawer
