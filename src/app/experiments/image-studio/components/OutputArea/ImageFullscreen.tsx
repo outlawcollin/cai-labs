@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import PillTab from "../shared/PillTab";
 import { categoryMeta } from "../../data";
 import type {
@@ -27,6 +27,7 @@ export default function ImageFullscreen({
   isMobile = false,
 }: ImageFullscreenProps) {
   const { request } = batch;
+  const [hoveredButton, setHoveredButton] = useState<string | null>(null);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -135,13 +136,15 @@ export default function ImageFullscreen({
           {/* Download + Post */}
           <div className="flex items-center gap-2">
             <button
-              className="flex items-center justify-center shrink-0 cursor-pointer transition-opacity hover:opacity-80"
+              onMouseEnter={() => setHoveredButton("download")}
+              onMouseLeave={() => setHoveredButton(null)}
+              className="flex items-center justify-center shrink-0 cursor-pointer transition-colors"
               style={{
                 width: 42,
                 height: 42,
                 borderRadius: "50%",
-                backgroundColor: "var(--color-inverse-surface, #f3f3f3)",
-                color: "var(--color-inverse-on-surface, #1e1e1e)",
+                backgroundColor: hoveredButton === "download" ? "var(--color-inverse-on-surface)" : "var(--color-on-surface)",
+                color: hoveredButton === "download" ? "var(--color-on-surface)" : "var(--color-inverse-on-surface)",
               }}
               aria-label="Download image"
             >
@@ -157,12 +160,14 @@ export default function ImageFullscreen({
             </button>
 
             <button
-              className="flex items-center gap-2 shrink-0 cursor-pointer transition-opacity hover:opacity-80"
+              onMouseEnter={() => setHoveredButton("post")}
+              onMouseLeave={() => setHoveredButton(null)}
+              className="flex items-center gap-2 shrink-0 cursor-pointer transition-colors"
               style={{
                 height: 42,
                 borderRadius: 40,
-                backgroundColor: "var(--color-inverse-surface, #f3f3f3)",
-                color: "var(--color-inverse-on-surface, #1e1e1e)",
+                backgroundColor: hoveredButton === "post" ? "var(--color-inverse-on-surface)" : "var(--color-on-surface)",
+                color: hoveredButton === "post" ? "var(--color-on-surface)" : "var(--color-inverse-on-surface)",
                 padding: "0 18px",
               }}
               aria-label="Post image"
@@ -177,106 +182,6 @@ export default function ImageFullscreen({
           </div>
         </div>
 
-        {/* Bottom bar — inside the image */}
-        <div
-          className="absolute bottom-0 left-0 right-0 p-4"
-          style={{ background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 100%)" }}
-        >
-          <div className={`flex items-center w-full ${isMobile ? "justify-between" : "gap-2"}`}>
-            {/* Starring section */}
-            {avatars.length > 0 && (
-              <div className="flex items-center gap-2.5 shrink-0">
-                <div className="flex items-center">
-                  {avatars.map((avatar, index) => (
-                    <div
-                      key={`${avatar.url}-${index}`}
-                      className={`w-[42px] h-[42px] overflow-hidden border-2 shrink-0 ${
-                        avatar.isPersona ? "rounded-full" : "rounded-lg"
-                      }`}
-                      style={{
-                        marginLeft: index > 0 ? "-14px" : 0,
-                        borderColor: "rgba(0,0,0,0.3)",
-                        zIndex: avatars.length - index,
-                      }}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={avatar.url}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex flex-col items-start">
-                  <span className="font-mono text-[10px] uppercase tracking-wide text-white/60">
-                    Starring
-                  </span>
-                  <span className="text-lg font-medium leading-tight text-white">
-                    {starringText}
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* Detail pills - hidden on mobile */}
-            {!isMobile && (
-              <div className="flex flex-wrap gap-2 items-center flex-1 ml-6">
-                {optionPills.map((pill, index) => (
-                  <PillTab
-                    key={`${pill.category}-${pill.label}-${index}`}
-                    label={pill.label}
-                    size="xs"
-                    color={categoryMeta[pill.category].pillColor}
-                  />
-                ))}
-              </div>
-            )}
-
-            {/* Action buttons */}
-            <div className="flex items-center gap-2 shrink-0">
-              {onReshoot && (
-                <button
-                  type="button"
-                  onClick={onReshoot}
-                  className={`flex items-center justify-center border shrink-0 transition-opacity hover:opacity-80 cursor-pointer ${
-                    isMobile ? "w-[38px] h-[38px] rounded-full" : "gap-2 px-4 py-2 rounded-full"
-                  }`}
-                  style={{
-                    borderColor: "rgba(255,255,255,0.25)",
-                    color: "#fff",
-                  }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M1 4V10H7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M3.51 15C4.15 17.13 5.52 18.95 7.37 20.12C9.22 21.29 11.41 21.73 13.55 21.36C15.69 20.99 17.62 19.84 18.98 18.11C20.34 16.38 21.04 14.2 20.97 11.97C20.9 9.74 20.06 7.6 18.59 5.96C17.12 4.32 15.12 3.28 12.96 3.04C10.8 2.8 8.63 3.37 6.85 4.64L1 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  {!isMobile && <span className="text-sm font-medium">Reshoot</span>}
-                </button>
-              )}
-              {onUseDetails && (
-                <button
-                  type="button"
-                  onClick={onUseDetails}
-                  className={`flex items-center justify-center border shrink-0 transition-opacity hover:opacity-80 cursor-pointer ${
-                    isMobile ? "w-[38px] h-[38px] rounded-full" : "gap-2 px-4 py-2 rounded-full"
-                  }`}
-                  style={{
-                    borderColor: "rgba(255,255,255,0.25)",
-                    color: "#fff",
-                  }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M5 15H4C2.89543 15 2 14.1046 2 13V4C2 2.89543 2.89543 2 4 2H13C14.1046 2 15 2.89543 15 4V5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  {!isMobile && <span className="text-sm font-medium">Use Details</span>}
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

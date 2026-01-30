@@ -90,7 +90,7 @@ export default function LoadingState({
 
       {/* Ingredients bar */}
       <div
-        className={`flex items-center w-full pb-3 ${isMobile ? "justify-between" : "gap-2"}`}
+        className="flex items-center justify-between w-full pb-3"
       >
         {/* Starring section */}
         {avatars.length > 0 && (
@@ -137,19 +137,6 @@ export default function LoadingState({
           </div>
         )}
 
-        {/* Detail pills - hidden on mobile */}
-        {!isMobile && (
-          <div className="flex flex-wrap gap-2 items-center flex-1 ml-6">
-            {selectedItems.map((item, index) => (
-              <PillTab
-                key={`${item.category}-${item.label}-${index}`}
-                label={item.label}
-                size="xs"
-                color={categoryMeta[item.category].pillColor}
-              />
-            ))}
-          </div>
-        )}
 
         {/* Cancel button */}
         <button

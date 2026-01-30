@@ -112,7 +112,7 @@ export default function GenerationBatch({
 
       {/* Metadata Row */}
       <div
-        className={`flex items-center w-full pb-3 ${isMobile ? "justify-between" : "gap-2"}`}
+        className="flex items-center justify-between w-full pb-3"
       >
         {/* Starring section */}
         {avatars.length > 0 && (
@@ -159,19 +159,6 @@ export default function GenerationBatch({
           </div>
         )}
 
-        {/* Detail pills - hidden on mobile */}
-        {!isMobile && (
-          <div className="flex flex-wrap gap-2 items-center flex-1 ml-6">
-            {optionPills.map((pill, index) => (
-              <PillTab
-                key={`${pill.category}-${pill.label}-${index}`}
-                label={pill.label}
-                size="xs"
-                color={categoryMeta[pill.category].pillColor}
-              />
-            ))}
-          </div>
-        )}
 
         {/* Action buttons */}
         <div className="flex items-center gap-2 shrink-0">
@@ -179,7 +166,7 @@ export default function GenerationBatch({
             <button
               type="button"
               onClick={onReshoot}
-              className={`flex items-center justify-center border shrink-0 transition-colors hover:bg-black/10 dark:hover:bg-white/10 cursor-pointer ${
+              className={`flex items-center justify-center border shrink-0 transition-colors hover:bg-[var(--color-surface-variant)] cursor-pointer ${
                 isMobile ? "w-[38px] h-[38px] rounded-full" : "gap-2 px-4 py-2 rounded-full"
               }`}
               style={{
@@ -198,7 +185,7 @@ export default function GenerationBatch({
             <button
               type="button"
               onClick={onUseDetails}
-              className={`flex items-center justify-center border shrink-0 transition-colors hover:bg-black/10 dark:hover:bg-white/10 cursor-pointer ${
+              className={`flex items-center justify-center border shrink-0 transition-colors hover:bg-[var(--color-surface-variant)] cursor-pointer ${
                 isMobile ? "w-[38px] h-[38px] rounded-full" : "gap-2 px-4 py-2 rounded-full"
               }`}
               style={{

@@ -32,14 +32,14 @@ export const categoryMeta: Record<OptionCategory, { icon: string; pillColor: str
 // Mock options for each category
 export const mockOptions: Record<OptionCategory, OptionItem[]> = {
   style: [
-    { id: "st1", label: "3D", thumbnail: "/image-studio/details/style/ghost_3d.jpg", category: "style" },
-    { id: "st2", label: "Anime", thumbnail: "/image-studio/details/style/ghost_anime.jpg", category: "style" },
-    { id: "st3", label: "Chibi", thumbnail: "/image-studio/details/style/ghost_chibi.jpg", category: "style" },
-    { id: "st4", label: "Comic", thumbnail: "/image-studio/details/style/ghost_comic.jpg", category: "style" },
-    { id: "st5", label: "Ghibli", thumbnail: "/image-studio/details/style/ghost_ghibli.jpg", category: "style" },
-    { id: "st6", label: "Pixel", thumbnail: "/image-studio/details/style/ghost_pixel.jpg", category: "style" },
-    { id: "st7", label: "Realistic", thumbnail: "/image-studio/details/style/ghost_realistic.jpg", category: "style" },
-    { id: "st8", label: "Sketch", thumbnail: "/image-studio/details/style/ghost_sketch.jpg", category: "style" },
+    { id: "st1", label: "3D", thumbnail: "/image-studio/details/style/3d.png", category: "style" },
+    { id: "st2", label: "Anime", thumbnail: "/image-studio/details/style/anime.png", category: "style" },
+    { id: "st3", label: "Chibi", thumbnail: "/image-studio/details/style/chibi.png", category: "style" },
+    { id: "st4", label: "Comic", thumbnail: "/image-studio/details/style/comic.png", category: "style" },
+    { id: "st5", label: "Ghibli", thumbnail: "/image-studio/details/style/ghibli.png", category: "style" },
+    { id: "st6", label: "Pixel", thumbnail: "/image-studio/details/style/pixel.png", category: "style" },
+    { id: "st7", label: "Photorealistic", thumbnail: "/image-studio/details/style/photorealistic.png", category: "style" },
+    { id: "st8", label: "Sketch", thumbnail: "/image-studio/details/style/sketch.png", category: "style" },
   ],
   shot: [
     { id: "sh1", label: "Close Up", thumbnail: "/image-studio/details/shot/close-up.png", category: "shot" },
@@ -120,7 +120,13 @@ export const mockOptions: Record<OptionCategory, OptionItem[]> = {
     { id: "ef2", label: "Sparkles", thumbnail: "/image-studio/details/effects/sparkles.png", category: "effects" },
     { id: "ef3", label: "Hearts", thumbnail: "/image-studio/details/effects/hearts.png", category: "effects" },
     { id: "ef4", label: "Lightning", thumbnail: "/image-studio/details/effects/lightning.png", category: "effects" },
-    { id: "ef5", label: "Smoke", thumbnail: "/image-studio/details/effects/smoke.png", category: "effects" },
+    { id: "ef6", label: "Bokeh", thumbnail: "/image-studio/details/effects/bokeh.png", category: "effects" },
+    { id: "ef7", label: "Fog", thumbnail: "/image-studio/details/effects/fog.png", category: "effects" },
+    { id: "ef8", label: "Motion Blur", thumbnail: "/image-studio/details/effects/motion blur.png", category: "effects" },
+    { id: "ef9", label: "Petals", thumbnail: "/image-studio/details/effects/petals.png", category: "effects" },
+    { id: "ef10", label: "Snow", thumbnail: "/image-studio/details/effects/snow.png", category: "effects" },
+    { id: "ef11", label: "Stars", thumbnail: "/image-studio/details/effects/stars.png", category: "effects" },
+    { id: "ef12", label: "Lens Flare", thumbnail: "/image-studio/details/effects/lens flare.png", category: "effects" },
   ],
 };
 

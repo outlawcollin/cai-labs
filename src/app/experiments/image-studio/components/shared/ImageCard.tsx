@@ -25,6 +25,7 @@ export function ImageCard({
   onPost,
 }: ImageCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [hoveredButton, setHoveredButton] = useState<string | null>(null);
   const showLoading = isLoading || !imageUrl;
   const showHoverOverlay = !showLoading && isHovered && imageUrl;
 
@@ -110,13 +111,15 @@ export function ImageCard({
                   e.stopPropagation();
                   onDownload?.();
                 }}
-                className="flex items-center justify-center shrink-0 cursor-pointer transition-opacity hover:opacity-80"
+                onMouseEnter={() => setHoveredButton("download")}
+                onMouseLeave={() => setHoveredButton(null)}
+                className="flex items-center justify-center shrink-0 cursor-pointer transition-colors"
                 style={{
                   width: 38,
                   height: 38,
                   borderRadius: "50%",
-                  backgroundColor: "var(--color-inverse-surface, #f3f3f3)",
-                  color: "var(--color-inverse-on-surface, #1e1e1e)",
+                  backgroundColor: hoveredButton === "download" ? "var(--color-inverse-on-surface)" : "var(--color-on-surface)",
+                  color: hoveredButton === "download" ? "var(--color-on-surface)" : "var(--color-inverse-on-surface)",
                 }}
                 aria-label="Download image"
               >
@@ -137,12 +140,14 @@ export function ImageCard({
                   e.stopPropagation();
                   onPost?.();
                 }}
-                className="flex items-center gap-2 shrink-0 cursor-pointer transition-opacity hover:opacity-80"
+                onMouseEnter={() => setHoveredButton("post")}
+                onMouseLeave={() => setHoveredButton(null)}
+                className="flex items-center gap-2 shrink-0 cursor-pointer transition-colors"
                 style={{
                   height: 38,
                   borderRadius: 40,
-                  backgroundColor: "var(--color-inverse-surface, #f3f3f3)",
-                  color: "var(--color-inverse-on-surface, #1e1e1e)",
+                  backgroundColor: hoveredButton === "post" ? "var(--color-inverse-on-surface)" : "var(--color-on-surface)",
+                  color: hoveredButton === "post" ? "var(--color-on-surface)" : "var(--color-inverse-on-surface)",
                   padding: "0 18px",
                 }}
                 aria-label="Post image"

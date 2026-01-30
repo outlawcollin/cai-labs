@@ -120,14 +120,6 @@ export default function MobileDrawer({
 
   return (
     <>
-      {/* Backdrop */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 transition-opacity"
-          onClick={onClose}
-        />
-      )}
-
       {/* Drawer */}
       <div
         ref={drawerRef}
@@ -161,10 +153,7 @@ export default function MobileDrawer({
         </div>
 
         {/* Content */}
-        <div
-          className="flex-1 overflow-y-auto"
-          style={{ overscrollBehaviorY: "contain" }}
-        >
+        <div className="flex-1 min-h-0">
           {children}
         </div>
       </div>

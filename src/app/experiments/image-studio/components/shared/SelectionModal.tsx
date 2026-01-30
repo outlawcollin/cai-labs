@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import type { Persona, Character } from "../../types";
 
@@ -111,7 +112,7 @@ export function SelectionModal({
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 flex items-center justify-center transition-opacity duration-200"
       style={{
@@ -150,7 +151,7 @@ export function SelectionModal({
           {/* Close Button - Circular */}
           <button
             onClick={handleClose}
-            className="flex items-center justify-center transition-opacity hover:opacity-70 cursor-pointer"
+            className="flex items-center justify-center hover:opacity-70 cursor-pointer"
             style={{
               width: "38px",
               height: "38px",
@@ -159,19 +160,8 @@ export function SelectionModal({
             }}
             aria-label="Close modal"
           >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              style={{ color: "var(--color-on-surface)" }}
-            >
-              <path
-                d="M6 6L18 18M6 18L18 6"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5.8125 5.8125L12.1875 12.1875M12.1875 5.8125L5.8125 12.1875" stroke="var(--color-on-surface)" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
           </button>
         </div>
@@ -354,7 +344,8 @@ export function SelectionModal({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
