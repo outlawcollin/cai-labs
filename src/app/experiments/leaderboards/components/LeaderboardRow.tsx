@@ -17,8 +17,6 @@ export interface LeaderboardRowProps {
   interactions: string;
   showMascot?: boolean;
   userId?: string;
-  color?: string; // CSS color value for top 3 row backgrounds
-  darkText?: boolean; // use dark text on light-colored backgrounds (e.g. lime)
 }
 
 export default function LeaderboardRow({
@@ -29,27 +27,20 @@ export default function LeaderboardRow({
   interactions,
   showMascot = true,
   userId,
-  color,
-  darkText = false,
 }: LeaderboardRowProps) {
   const isTopThree = rank <= 3;
-  const hasColor = isTopThree && !!color;
 
-  // Colored rows: white or black text on colored bg
-  // Default rows: surface text on surface bg with border
-  const coloredText = darkText ? "black" : "white";
-  const coloredSubtext = darkText ? "rgba(0,0,0,0.6)" : "rgba(255,255,255,0.6)";
-  const textColor = hasColor ? coloredText : "var(--color-on-surface)";
-  const subtextColor = hasColor ? coloredSubtext : "var(--color-on-surface-variant)";
-  const bgColor = hasColor ? color : "var(--color-surface)";
-  const borderColor = hasColor ? "transparent" : "var(--color-outline-variant)";
-  const avatarBorder = hasColor ? "rgba(255,255,255,0.24)" : "rgba(0,0,0,0.12)";
+  const textColor = "var(--color-on-surface)";
+  const subtextColor = "var(--color-on-surface-variant)";
+  const bgColor = "var(--color-surface)";
+  const borderColor = "var(--color-outline-variant)";
+  const avatarBorder = "rgba(0,0,0,0.12)";
 
   const profileHref = userId ? `/user/${userId}` : "#";
 
   return (
     <div
-      className="relative flex items-center justify-between p-3 md:p-6 rounded-[20px] md:rounded-[32px] shadow-md"
+      className="relative flex items-center justify-between p-3 md:p-6 rounded-[20px] md:rounded-[32px] shadow-xs"
       style={{
         backgroundColor: bgColor,
         border: `1px solid ${borderColor}`,
@@ -105,20 +96,28 @@ export default function LeaderboardRow({
         <div className="flex flex-col gap-1 md:gap-2 min-w-0">
           <Link
             href={profileHref}
-            className="text-base md:text-[32px] font-medium lowercase leading-none hover:opacity-80 transition-opacity"
-            style={{ color: textColor }}
+            className="text-base md:text-[32px] font-medium lowercase leading-none hover:opacity-80"
+            style={{
+              color: textColor,
+              transitionProperty: "opacity",
+              transitionDuration: "200ms",
+              transitionTimingFunction: "var(--ease-brand)",
+            }}
           >
             {name}
           </Link>
           <Link
             href={profileHref}
-            className="text-xs md:text-sm leading-none tracking-tight truncate transition-all hover:underline"
+            className="text-xs md:text-sm leading-none tracking-tight truncate hover:underline"
             style={{
               fontFamily: "var(--font-mono)",
               color: subtextColor,
+              transitionProperty: "all",
+              transitionDuration: "200ms",
+              transitionTimingFunction: "var(--ease-brand)",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.color = hasColor ? "white" : "var(--color-on-surface)";
+              e.currentTarget.style.color = "var(--color-on-surface)";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.color = subtextColor;

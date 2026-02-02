@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import SubpageNavBar from "@/components/SubpageNavBar";
 import LeaderboardRow from "./components/LeaderboardRow";
 import StaticMascot from "./components/StaticMascot";
+import PillTab from "@/app/experiments/image-studio/components/shared/PillTab";
 import { ThemeProvider, useTheme } from "@/app/experiments/image-studio/context/ThemeContext";
 import SubpageFooter from "@/components/SubpageFooter";
 
@@ -32,8 +34,6 @@ interface LeaderboardEntry {
   profileImage: string;
   interactions: string;
   userId: string;
-  color?: string;
-  darkText?: boolean;
 }
 
 const sampleData: LeaderboardEntry[] = [
@@ -44,7 +44,6 @@ const sampleData: LeaderboardEntry[] = [
     profileImage: "/community/community-01.png",
     interactions: "1.7m",
     userId: "finennarrationworks",
-    color: "var(--color-toasty-amber)",
   },
   {
     rank: 2,
@@ -53,7 +52,6 @@ const sampleData: LeaderboardEntry[] = [
     profileImage: "/community/community-04.png",
     interactions: "896.5k",
     userId: "fictionalmanlover96",
-    color: "var(--color-alt-violet)",
   },
   {
     rank: 3,
@@ -62,8 +60,6 @@ const sampleData: LeaderboardEntry[] = [
     profileImage: "/community/community-05.png",
     interactions: "731.3k",
     userId: "characteruser124",
-    color: "var(--color-wired-lime)",
-    darkText: true,
   },
   {
     rank: 4,
@@ -92,14 +88,23 @@ const sampleData: LeaderboardEntry[] = [
 ];
 
 // Stagger indices:
-// 1-4: heading words (80ms apart)
-// 5: subtitle
+// 1-2: heading lines
+// 3-4: subtitle lines
+// 5: carousel
 // 6: refresh pill
-// 7+: rows (one per row)
+// 7+: rows
 const headingLines = ["most talked-to,", "least behaved."];
 const subtitleLines = ["characters people keep", "coming back to."];
 
 const MASCOT_SIZE = 70;
+
+const carouselImages = [
+  { src: "/leaderboards/images/vamp.png", label: "Vampire Roommate", color: "#d90000", transparentBg: false },
+  { src: "/leaderboards/images/pink.png", label: "Pink Blade", color: "#ff4dc9", transparentBg: false },
+  { src: "/leaderboards/images/cool guy.png", label: "Cool Guy", color: "#7db4ff", transparentBg: true },
+  { src: "/leaderboards/images/serpahix.png", label: "Seraphix", color: "#df91f2", transparentBg: false },
+  { src: "/leaderboards/images/neon girl.png", label: "Neon Girl", color: "#00d9d9", transparentBg: true },
+];
 
 export default function LeaderboardsPage() {
   return (
@@ -174,6 +179,9 @@ function LeaderboardsFooter() {
 function LeaderboardsContent() {
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
   const [countdown, setCountdown] = useState<{ hours: number; minutes: number; seconds: number } | null>(null);
+  const [activeIndex, setActiveIndex] = useState(carouselImages.length);
+  const [transitionEnabled, setTransitionEnabled] = useState(true);
+  const extendedImages = [...carouselImages, ...carouselImages, ...carouselImages];
 
   useEffect(() => {
     const checkMobile = () => {
@@ -192,6 +200,32 @@ function LeaderboardsContent() {
     return () => clearInterval(interval);
   }, []);
 
+  // Auto-advance carousel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveIndex(prev => prev + 1);
+    }, 1600);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Silent reset: when we've scrolled past the middle set, jump back without transition
+  useEffect(() => {
+    const baseOffset = carouselImages.length;
+    if (activeIndex >= baseOffset + carouselImages.length) {
+      const timer = setTimeout(() => {
+        setTransitionEnabled(false);
+        setActiveIndex(prev => prev - carouselImages.length);
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            setTransitionEnabled(true);
+          });
+        });
+      }, 650);
+      return () => clearTimeout(timer);
+    }
+  }, [activeIndex]);
+
+
   if (isMobile === null) {
     return (
       <div className="flex flex-col min-h-dvh" style={{ backgroundColor: "var(--color-background)" }} />
@@ -201,10 +235,16 @@ function LeaderboardsContent() {
   return (
     <div
       className="flex flex-col min-h-dvh"
-      style={{ backgroundColor: "var(--color-background)" }}
+      style={{ backgroundColor: "var(--color-background)", overflowX: "clip" }}
     >
       {/* Keyframes — Jakub-style enter animation */}
       <style>{`
+        :root {
+          --ease-brand: cubic-bezier(0.93, 0.00, 0.07, 1.00);
+          --ease-brand-in: cubic-bezier(0.00, 0.00, 0.07, 1.00);
+          --ease-brand-out: cubic-bezier(0.93, 0.00, 1.00, 1.00);
+          --ease-brand-bounce: cubic-bezier(0.00, 0.00, 0.07, 1.25);
+        }
         @keyframes enter {
           from {
             opacity: 0;
@@ -256,59 +296,200 @@ function LeaderboardsContent() {
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col gap-8 md:gap-[52px] max-w-6xl mx-auto w-full px-5 pt-24 md:pt-[200px] pb-12 md:pb-[200px]">
-        {/* Hero */}
-        <div className="flex flex-col gap-4 max-w-lg relative">
-          {/* Mascot resting on h1 — desktop only */}
-          {!isMobile && (
-            <div className="absolute pointer-events-none animate-enter" style={{ top: -55, left: -10, "--stagger": 1 } as React.CSSProperties}>
-              <StaticMascot mascotId="mascot-02" size={MASCOT_SIZE} />
+      <main className="flex-1 flex flex-col gap-14 max-w-5xl mx-auto w-full px-5 pt-32 md:pt-32 pb-12 md:pb-32">
+        {/* Hero — side-by-side on desktop, stacked on mobile */}
+        {(() => {
+          const cardSize = isMobile ? 224 : 380;
+          const gap = isMobile ? 40 : 80;
+          const pillSize = isMobile ? "xs" as const : "sm" as const;
+          const pillBottom = isMobile ? 24 : 44;
+          const pillRight = isMobile ? 18 : 30;
+
+          // Desktop: left-aligned track (right-peek only)
+          // Mobile: centered track (both-side peek)
+          const desktopTranslateX = `translateX(${-activeIndex * (cardSize + gap)}px)`;
+          const mobileTranslateX = `translateX(calc(-${activeIndex * (cardSize + gap)}px - ${cardSize / 2}px))`;
+          const translateX = isMobile ? mobileTranslateX : desktopTranslateX;
+
+          const imageTrack = (
+            <div
+              className={`flex items-center absolute top-0 ${isMobile ? "" : "left-0"}`}
+              style={{
+                gap,
+                ...(isMobile ? { left: "50%" } : {}),
+                transform: translateX,
+                transitionProperty: transitionEnabled ? "transform" : "none",
+                transitionDuration: "600ms",
+                transitionDelay: transitionEnabled ? "200ms" : "0ms",
+                transitionTimingFunction: "var(--ease-brand)",
+              }}
+            >
+              {extendedImages.map((img, i) => (
+                <div
+                  key={`${img.label}-${i}`}
+                  className="rounded-full overflow-hidden shrink-0 relative"
+                  style={{
+                    width: cardSize,
+                    height: cardSize,
+                    ...(!img.transparentBg ? { border: "1px solid rgba(255,255,255,0.15)" } : {}),
+                  }}
+                >
+                  <Image src={img.src} alt={img.label} fill className={img.transparentBg ? "object-contain" : "object-cover"} sizes={`${cardSize}px`} />
+                </div>
+              ))}
             </div>
-          )}
-          <h1
-            className="font-medium leading-[1.1] tracking-tight lowercase flex flex-col"
-            style={{ color: "var(--color-primary)", fontSize: isMobile ? 36 : 52 }}
-          >
-            {headingLines.map((line, i) => (
-              <span
-                key={line}
-                className="animate-enter"
-                style={{ "--stagger": i + 1 } as React.CSSProperties}
-              >
-                {line}
-              </span>
-            ))}
-          </h1>
-          <div
-            className="flex flex-col leading-[1.2] tracking-tight"
-            style={{ color: "var(--color-primary)", fontSize: isMobile ? 20 : 36 }}
-          >
-            {subtitleLines.map((line, i) => (
-              <span
-                key={line}
-                className="animate-enter"
-                style={{ "--stagger": headingLines.length + 1 + i } as React.CSSProperties}
-              >
-                {line}
-              </span>
-            ))}
-          </div>
-        </div>
+          );
+
+          const pillTrack = (
+            <div
+              className={`flex items-center absolute top-0 pointer-events-none z-20 ${isMobile ? "" : "left-0"}`}
+              style={{
+                gap,
+                ...(isMobile ? { left: "50%" } : {}),
+                transform: translateX,
+                transitionProperty: transitionEnabled ? "transform" : "none",
+                transitionDuration: "600ms",
+                transitionTimingFunction: "var(--ease-brand)",
+              }}
+            >
+              {extendedImages.map((img, i) => {
+                const isActive = i === activeIndex || i === activeIndex - 1;
+                return (
+                  <div
+                    key={`${img.label}-${i}`}
+                    className="shrink-0 relative"
+                    style={{ width: cardSize, height: cardSize }}
+                  >
+                    <div
+                      className="absolute left-1/2 -translate-x-1/2"
+                      style={{
+                        bottom: pillBottom,
+                        opacity: isActive ? 1 : 0,
+                        transitionProperty: transitionEnabled ? "opacity" : "none",
+                        transitionDuration: isActive ? "300ms" : "150ms",
+                        transitionTimingFunction: "var(--ease-brand)",
+                      }}
+                    >
+                      <PillTab label={img.label} color={img.color} size={pillSize} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          );
+
+          return (
+            <div className={`flex ${isMobile ? "flex-col gap-6" : "items-center justify-between"}`}>
+              {/* Carousel — first in DOM (top on mobile, right on desktop via order) */}
+              {isMobile ? (
+                <div
+                  className="animate-enter relative overflow-hidden"
+                  style={{
+                    "--stagger": headingLines.length + subtitleLines.length + 1,
+                    height: cardSize,
+                    width: "calc(100% + 40px)",
+                    marginLeft: -20,
+                    marginRight: -20,
+                  } as React.CSSProperties}
+                >
+                  {imageTrack}
+                  {pillTrack}
+                  {/* Left gradient fade */}
+                  <div
+                    className="absolute top-0 bottom-0 left-0 z-10 pointer-events-none"
+                    style={{
+                      width: 60,
+                      background: "linear-gradient(to right, var(--color-background), transparent)",
+                    }}
+                  />
+                  {/* Right gradient fade */}
+                  <div
+                    className="absolute top-0 bottom-0 right-0 z-10 pointer-events-none"
+                    style={{
+                      width: 60,
+                      background: "linear-gradient(to left, var(--color-background), transparent)",
+                    }}
+                  />
+                </div>
+              ) : (
+                <div
+                  className="animate-enter relative shrink-0 order-2 overflow-hidden rounded-full"
+                  style={{
+                    "--stagger": headingLines.length + subtitleLines.length + 1,
+                    width: cardSize,
+                    height: cardSize,
+                  } as React.CSSProperties}
+                >
+                  {imageTrack}
+                  {pillTrack}
+                  {/* Left gradient fade */}
+                  <div
+                    className="absolute top-0 bottom-0 left-0 z-10 pointer-events-none"
+                    style={{
+                      width: 94,
+                      background: "linear-gradient(to right, var(--color-background), transparent)",
+                    }}
+                  />
+                  {/* Right gradient fade */}
+                  <div
+                    className="absolute top-0 bottom-0 right-0 z-10 pointer-events-none"
+                    style={{
+                      width: 94,
+                      background: "linear-gradient(to left, var(--color-background), transparent)",
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Text — second in DOM (below on mobile, left on desktop via order) */}
+              <div className={`flex flex-col gap-4 min-w-0 ${isMobile ? "" : "order-1"}`}>
+                <h1
+                  className="font-medium leading-[1.1] tracking-tight lowercase flex flex-col"
+                  style={{ color: "var(--color-on-surface)", fontSize: isMobile ? 36 : "clamp(48px, 7vw, 72px)" }}
+                >
+                  {headingLines.map((line, i) => (
+                    <span
+                      key={line}
+                      className="animate-enter"
+                      style={{ "--stagger": i + 1 } as React.CSSProperties}
+                    >
+                      {line}
+                    </span>
+                  ))}
+                </h1>
+                <div
+                  className="flex flex-col leading-[1.2] tracking-tight"
+                  style={{ color: "var(--color-on-surface)", opacity: 0.8, fontSize: isMobile ? 20 : "clamp(24px, 3.5vw, 36px)" }}
+                >
+                  {subtitleLines.map((line, i) => (
+                    <span
+                      key={line}
+                      className="animate-enter"
+                      style={{ "--stagger": headingLines.length + 1 + i } as React.CSSProperties}
+                    >
+                      {line}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Leaderboard */}
         <div className="flex flex-col gap-6">
           {/* Refresh pill */}
           <div
             className="animate-enter flex justify-end relative"
-            style={{ "--stagger": headingLines.length + subtitleLines.length + 1 } as React.CSSProperties}
+            style={{ "--stagger": headingLines.length + subtitleLines.length + 2 } as React.CSSProperties}
           >
             <div
               className="inline-flex px-1.5 py-1 rounded-[4.5px] relative"
               style={{ backgroundColor: "var(--color-on-surface)" }}
             >
-              <div className="absolute pointer-events-none" style={{ bottom: "100%", left: "50%", marginLeft: -MASCOT_SIZE / 2 }}>
+              {/* <div className="absolute pointer-events-none" style={{ bottom: "100%", left: "50%", marginLeft: -MASCOT_SIZE / 2 }}>
                 <StaticMascot mascotId="mascot-22" size={MASCOT_SIZE} />
-              </div>
+              </div> */}
               <span
                 className="text-sm md:text-base leading-none tracking-tight"
                 style={{
@@ -327,9 +508,9 @@ function LeaderboardsContent() {
               <div
                 key={entry.rank}
                 className="animate-enter relative"
-                style={{ "--stagger": headingLines.length + subtitleLines.length + 2 + index } as React.CSSProperties}
+                style={{ "--stagger": headingLines.length + subtitleLines.length + 3 + index } as React.CSSProperties}
               >
-                {index === 0 && !isMobile && (
+                {/* {index === 0 && !isMobile && (
                   <div className="absolute pointer-events-none z-10" style={{ top: -55, left: 120 }}>
                     <StaticMascot mascotId="mascot-11" size={MASCOT_SIZE} />
                   </div>
@@ -343,7 +524,7 @@ function LeaderboardsContent() {
                   <div className="absolute pointer-events-none z-10" style={{ top: -55, right: 160 }}>
                     <StaticMascot mascotId="mascot-04" size={MASCOT_SIZE} />
                   </div>
-                )}
+                )} */}
                 <LeaderboardRow
                   rank={entry.rank}
                   name={entry.name}
@@ -352,8 +533,6 @@ function LeaderboardsContent() {
                   interactions={entry.interactions}
                   showMascot={entry.rank <= 3}
                   userId={entry.userId}
-                  color={entry.color}
-                  darkText={entry.darkText}
                 />
               </div>
             ))}

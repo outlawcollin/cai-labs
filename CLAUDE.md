@@ -303,3 +303,48 @@ npm run lint   # Run ESLint
   - mascot-04 (green frog) on row 6 (dispatch): `top: -55, right: 160` — desktop only
 - Only countdown pill mascot visible on mobile (others clipped or off-screen at mobile widths)
 - Navbar and h1 mascot use `animate-enter` with stagger to prevent flash-before-animation
+
+## Known Pitfalls — Do Not Repeat
+
+### Do not modify the enter animation keyframes or fill mode
+The Jakub-style enter animation uses `filter: blur(0px)` in the `to` frame and `animation-fill-mode: both`. This is intentional and working. **Do not** change `blur(0px)` to `filter: none`, do not change `both` to `forwards`, and do not change `ease-out` to a custom easing on this animation. Previous attempts to "fix" text blurriness by modifying these values made the problem worse. The original values are stable and tested — leave them alone.
+
+## Session History (Feb 2, 2026)
+
+### Leaderboards — Row Cleanup
+- Removed colored backgrounds from top 3 rows (`color`, `darkText` props deleted from `LeaderboardEntry` and sample data)
+- All rows now use theme-aware `--color-surface` bg, `--color-on-surface` text, `--color-outline-variant` border
+- Changed row shadow from `shadow-md` → `shadow-xs`
+- Changed h1/subtitle text color from `--color-primary` to `--color-on-surface`
+- Commented out all 5 StaticMascot placements
+
+### Leaderboards — Hero Carousel (Snap + Parallax)
+- Replaced static image collage with auto-advancing snap carousel
+- Side-by-side layout matching Figma comp (`3020:23266`): text left, carousel right on desktop; stacked on mobile
+- Large circular images: 380px desktop / 240px mobile, `rounded-full overflow-hidden`
+- One image fully visible + next peeking at right edge with gradient fade
+- Two-track parallax system: image track slides immediately (600ms), pill track slides with 200ms delay — creates visible horizontal lag where pill trails behind image on enter and leads ahead on exit
+- Each image has a colored PillTab at bottom-right (unique color per character)
+- Auto-advance interval: 1600ms (1000ms pause + 600ms transition)
+- Current images: Seraphix (`#df91f2`), Vampire Roommate (`#d90000`), Pink Blade (`#ff4dc9`)
+- Cool Guy and Purple commented out temporarily
+
+### Leaderboards — Brand Easing CSS Variables
+- Added `:root` CSS custom properties for brand easing curves from Character.ai Brand Guidelines Figma:
+  - `--ease-brand: cubic-bezier(0.93, 0.00, 0.07, 1.00)` — carousel slide + hover transitions
+  - `--ease-brand-in: cubic-bezier(0.00, 0.00, 0.07, 1.00)` — element entrance
+  - `--ease-brand-out: cubic-bezier(0.93, 0.00, 1.00, 1.00)` — element exit
+  - `--ease-brand-bounce: cubic-bezier(0.00, 0.00, 0.07, 1.25)` — playful overshoot
+- Applied `--ease-brand` to carousel transitions and LeaderboardRow hover states (via `transitionTimingFunction` longhand — `var()` doesn't work in `transition`/`animation` shorthand)
+- Enter animation left on original `ease-out` (see Known Pitfalls above)
+
+### Leaderboards — LeaderboardRow Hover Transitions
+- Name link: `transitionProperty: "opacity"`, `transitionDuration: "200ms"`, `transitionTimingFunction: "var(--ease-brand)"`
+- Username link: `transitionProperty: "all"`, same duration/easing, replaces Tailwind `transition-all`
+
+### Leaderboards — Layout Updates
+- Container changed from `max-w-6xl` to `max-w-5xl` (1024px)
+- Consistent section spacing: `pt-16 / gap-16` mobile, `pt-32 / gap-32` desktop (128px)
+- Hero text uses fluid `clamp()` sizing: `clamp(36px, 5vw, 72px)` heading, `clamp(20px, 3vw, 36px)` subtitle
+- Re-imported `PillTab` from image-studio shared components
+- Added `Image` import from next/image for carousel
