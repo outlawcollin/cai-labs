@@ -318,9 +318,10 @@ function LeaderboardsContent() {
                 gap,
                 ...(isMobile ? { left: "50%" } : {}),
                 transform: translateX,
+                willChange: "transform",
                 transitionProperty: transitionEnabled ? "transform" : "none",
-                transitionDuration: "600ms",
-                transitionDelay: transitionEnabled ? "200ms" : "0ms",
+                transitionDuration: "900ms",
+                transitionDelay: transitionEnabled ? "60ms" : "0ms",
                 transitionTimingFunction: "var(--ease-brand)",
               }}
             >
@@ -347,8 +348,9 @@ function LeaderboardsContent() {
                 gap,
                 ...(isMobile ? { left: "50%" } : {}),
                 transform: translateX,
+                willChange: "transform",
                 transitionProperty: transitionEnabled ? "transform" : "none",
-                transitionDuration: "600ms",
+                transitionDuration: "900ms",
                 transitionTimingFunction: "var(--ease-brand)",
               }}
             >
@@ -385,7 +387,7 @@ function LeaderboardsContent() {
                 <div
                   className="animate-enter relative overflow-hidden"
                   style={{
-                    "--stagger": headingLines.length + subtitleLines.length + 1,
+                    "--stagger": 1,
                     height: cardSize,
                     width: "calc(100% + 40px)",
                     marginLeft: -20,
@@ -413,7 +415,7 @@ function LeaderboardsContent() {
                 </div>
               ) : (
                 <div
-                  className="animate-enter relative shrink-0 order-2 overflow-hidden rounded-full"
+                  className="animate-enter relative shrink-0 order-2 overflow-hidden"
                   style={{
                     "--stagger": headingLines.length + subtitleLines.length + 1,
                     width: cardSize,
@@ -451,7 +453,7 @@ function LeaderboardsContent() {
                     <span
                       key={line}
                       className="animate-enter"
-                      style={{ "--stagger": i + 1 } as React.CSSProperties}
+                      style={{ "--stagger": isMobile ? i + 2 : i + 1 } as React.CSSProperties}
                     >
                       {line}
                     </span>
@@ -465,7 +467,7 @@ function LeaderboardsContent() {
                     <span
                       key={line}
                       className="animate-enter"
-                      style={{ "--stagger": headingLines.length + 1 + i } as React.CSSProperties}
+                      style={{ "--stagger": isMobile ? headingLines.length + 2 + i : headingLines.length + 1 + i } as React.CSSProperties}
                     >
                       {line}
                     </span>

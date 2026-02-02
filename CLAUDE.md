@@ -10,6 +10,22 @@ A Next.js brand landing page for Cai Labs featuring interactive mascot character
 - Matter.js for physics simulation
 - React hooks for animations and state
 
+## Available Tools
+
+### MCP Servers
+- **Figma** — `get_design_context`, `get_variable_defs`, `get_screenshot`, `get_metadata`, `create_design_system_rules`, `get_figjam`
+- **Figma Remote** — same as above plus `generate_diagram`, `get_code_connect_map`, `whoami`, `add_code_connect_map`, `get_code_connect_suggestions`, `send_code_connect_mappings`
+- **Claude in Chrome** — browser automation: `navigate`, `read_page`, `get_page_text`, `find`, `form_input`, `computer`, `javascript_tool`, `resize_window`, `gif_creator`, `upload_image`, `tabs_context_mcp`, `tabs_create_mcp`, `update_plan`, `read_console_messages`, `read_network_requests`, `shortcuts_list`, `shortcuts_execute`
+- **Context7** — up-to-date library docs: `resolve-library-id`, `query-docs`
+- **Firecrawl** — web scraping/crawling: `firecrawl_scrape`, `firecrawl_map`, `firecrawl_search`, `firecrawl_crawl`, `firecrawl_check_crawl_status`, `firecrawl_extract`, `firecrawl_agent`, `firecrawl_agent_status`
+
+### Skills (slash commands)
+- `/remember` — save session notes on what was done, learned, and next steps
+- `/web-design-guidelines` — review UI code against Web Interface Guidelines
+- `/vercel-react-best-practices` — React/Next.js performance optimization audit
+- `/rams` — accessibility and visual design review
+- `/keybindings-help` — customize keyboard shortcuts
+
 ## Key Components
 
 ### MascotLauncher (`src/components/MascotLauncher/`)
@@ -348,3 +364,71 @@ The Jakub-style enter animation uses `filter: blur(0px)` in the `to` frame and `
 - Hero text uses fluid `clamp()` sizing: `clamp(36px, 5vw, 72px)` heading, `clamp(20px, 3vw, 36px)` subtitle
 - Re-imported `PillTab` from image-studio shared components
 - Added `Image` import from next/image for carousel
+
+## Session History (Feb 2, 2026 — continued)
+
+### Leaderboards — Carousel Responsive Text Sizing
+- Replaced fixed font sizes with `clamp()` for responsive scaling below 1000px viewports
+- Heading: `clamp(48px, 7vw, 72px)` desktop, `36px` mobile
+- Subtitle: `clamp(24px, 3.5vw, 36px)` desktop, `20px` mobile
+- Removed `shrink-0` from text container to allow natural shrinking
+
+### Leaderboards — Mobile Carousel Layout
+- On mobile/tablet (stacked layout), carousel renders above text
+- Full-bleed mobile carousel: `width: calc(100% + 40px)` with negative margins to break out of `px-5` padding
+- Centered track: `left: 50%` + `translateX(calc(-offset - cardSize/2))`
+- Both-side gradient fades (60px mobile, 94px desktop) using `var(--color-background)`
+- Desktop uses CSS `order-2` to keep carousel on right despite being first in DOM
+
+### Leaderboards — Infinite Carousel (No Loop-Back)
+- Tripled image array (`extendedImages = [...images, ...images, ...images]`)
+- `activeIndex` starts at `carouselImages.length` (middle set)
+- Auto-advance increments without modulo
+- Silent reset: when `activeIndex >= baseOffset + carouselImages.length`, disable transitions, subtract `carouselImages.length`, re-enable after double `requestAnimationFrame`
+- Reset timeout: 650ms (after transition completes)
+
+### Leaderboards — Parallax Refinement
+- Reduced parallax gap from 200ms to 60ms — pill and image move mostly together with subtle offset
+- Image track: 60ms delay (slightly trails pill)
+- Pill track: 0ms delay (leads slightly on exit)
+- Transition duration increased from 600ms to 900ms for smoother feel
+- Easing: `--ease-brand` (tried `--ease-brand-out` but too abrupt)
+
+### Leaderboards — Pill Exit Animation
+- `isActive = i === activeIndex || i === activeIndex - 1` — keeps departing pill visible during slide-out
+- Pill opacity transition: `transitionProperty: transitionEnabled ? "opacity" : "none"` prevents flicker during silent reset
+- Pill horizontally centered: `left-1/2 -translate-x-1/2`, `bottom: 44px` desktop / `24px` mobile
+
+### Leaderboards — Added Cool Guy & Neon Girl
+- 5 carousel images: Vampire Roommate (`#d90000`), Pink Blade (`#ff4dc9`), Cool Guy (`#7db4ff`), Seraphix (`#df91f2`), Neon Girl (`#00d9d9`)
+- `transparentBg` flag: `true` for Cool Guy and Neon Girl
+- Transparent images use `object-contain` (no border), others use `object-cover` with `1px solid rgba(255,255,255,0.15)` border
+
+### Leaderboards — Mobile Carousel Sizing
+- Circle size: 224px mobile / 380px desktop
+- Gap: 40px mobile / 80px desktop
+- Mobile top padding: `pt-32`
+
+### Leaderboards — Mobile Entry Animation
+- Mobile carousel gets `--stagger: 1` (fades in first)
+- Mobile text staggers offset by +1 (headings: `i + 2`, subtitle: `headingLines.length + 2 + i`)
+
+### Leaderboards — Desktop Circular Mask Removed
+- Removed `rounded-full` from desktop carousel container — images now slide behind rectangular `overflow-hidden` + gradient fades instead of circular mask
+- Individual image circles retain their own `rounded-full overflow-hidden`
+
+### Leaderboards — will-change on Carousel Tracks
+- Added `willChange: "transform"` to both image track and pill track style objects
+- Promotes tracks to GPU compositor layers — may fix sub-pixel 1px border seam artifact during transitions
+- The 1px line only appears on bordered images (not transparent-bg ones like Cool Guy), suggesting it's a compositing artifact between border and gradient edge
+
+### Leaderboards — Pushed to Branch
+- Created and pushed `leaderboards-carousel-hero` branch
+
+### Known Issue — 1px Border Seam During Carousel Transition
+- A 1px line appears on the left edge of bordered carousel images during slide transitions
+- Only affects images with `border: 1px solid rgba(255,255,255,0.15)` — not transparent-bg images
+- Cause: sub-pixel compositing artifact between circle border and gradient's transparent edge
+- Attempted fixes: box-shadow inset (no effect), `rounded-full` on container (clips pill), `color-mix` gradient (no effect), removing border (works but loses design intent)
+- Current mitigation: `willChange: "transform"` on tracks — pending verification
+- Gradient hierarchy is correct (gradients z-10, pill z-20, image z-auto) — not a stacking issue
