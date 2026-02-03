@@ -432,3 +432,159 @@ The Jakub-style enter animation uses `filter: blur(0px)` in the `to` frame and `
 - Attempted fixes: box-shadow inset (no effect), `rounded-full` on container (clips pill), `color-mix` gradient (no effect), removing border (works but loses design intent)
 - Current mitigation: `willChange: "transform"` on tracks — pending verification
 - Gradient hierarchy is correct (gradients z-10, pill z-20, image z-auto) — not a stacking issue
+
+## Session History (Feb 3, 2026 — Books 3D Bookshelf, WORKING)
+
+### Context
+Built 3D CSS bookshelf for `/experiments/books`. Books display as spines (72px) by default, click spine → cover reveals with 3D rotation, click cover → two-page detail spread opens.
+
+### Working 3D Geometry (Book.tsx) — DO NOT CHANGE THESE VALUES
+
+The 3D book uses a three-tier CSS structure: **Scene** (perspective) → **Body** (preserve-3d + rotateY) → **Faces** (cover + spine with backfaceVisibility hidden).
+
+**Constants:**
+```
+SPINE_W = 72       // spine width
+BOOK_H = 475       // book height
+COVER_W = 312      // cover width (BOOK_H * 1388/2112)
+BODY_W = 384       // SPINE_W + COVER_W
+```
+
+**Critical values that make the rotation work:**
+```tsx
+// Body pivot point — right edge of the spine
+transformOrigin: `${SPINE_W}px center`   // = "72px center"
+
+// Body rotation per state
+bodyRotation = { closed: 90, cover: 0, details: -180 }
+
+// Scene shifts left when open to eliminate the 72px spine gap
+sceneLeft = { closed: 0, cover: -SPINE_W, details: -SPINE_W }
+
+// Cover face — positioned flush right of spine
+left: SPINE_W, width: COVER_W
+
+// Spine face — perpendicular, right edge aligns with body pivot
+left: 0, width: SPINE_W
+transform: "rotateY(-90deg)"
+transformOrigin: "right center"
+```
+
+**Why this works — rotation math:**
+| State | Body rotateY | Cover total | Spine (-90deg child) total |
+|-------|-------------|-------------|---------------------------|
+| closed | 90 | 90 (edge-on, hidden) | 90 + (-90) = 0 (faces viewer) |
+| cover | 0 | 0 (faces viewer) | 0 + (-90) = -90 (edge-on, hidden) |
+| details | -180 | -180 (backface, hidden) | -180 + (-90) = -270 (edge-on) |
+
+**Visual effect:** Clicking spine → body rotates from 90→0 → cover sweeps forward from left, right edge swings toward viewer. This looks like physically opening a book.
+
+### Key Learnings from Failed Attempts
+
+1. **`perspective` on scrollable containers breaks 3D** — must use per-element perspective on the scene div, not the scroll container
+2. **Rotation direction matters for perception** — `rotateY(-90deg)→0` looks like CLOSING; `rotateY(90deg)→0` looks like OPENING
+3. **Pivot point determines which side the cover appears on** — `left center` puts cover on wrong side; `72px center` (right edge of spine) is correct
+4. **Spine `transformOrigin: "right center"` is critical** — spine's right edge must align with body's pivot point so they share the same hinge
+5. **Scene `left` animation compensates for spine gap** — when open, spine is edge-on (invisible) leaving 72px empty space; animating scene left by -72px fills it
+6. **Always prototype 3D CSS in a standalone HTML file first** — isolating from React/Framer Motion makes iteration dramatically faster
+7. **`overflow: "hidden"` on parent containers clips 3D transforms** — use `overflowX: "clip"` instead to clip only horizontal overflow
+
+### Details State Fixes
+- Scene fades to `opacity: 0` in details state to hide spine sliver from 3D perspective
+- Interior pages spread has `borderRadius: 12`, `overflow: "hidden"`, `boxShadow: "0 2px 24px rgba(0,0,0,0.12)"`
+- Bookshelf container uses `overflowX: "clip"` (not `overflow: "hidden"`) to avoid clipping shadows/transforms
+
+### Files
+- `src/app/experiments/books/components/Book.tsx` — 3D book with spine/cover/details states
+- `src/app/experiments/books/components/Bookshelf.tsx` — horizontal track with centering, GAP=100
+- `src/app/experiments/books/data.ts` — 5 base books × 4 repeats = 20 books
+- `src/app/experiments/books/page.tsx` — page with ThemeProvider, nav, filter pills
+
+### How the 3D Rotation Was Solved (Chronological)
+
+Previous session had 5 failed attempts using various `transformOrigin`/`rotateY` combos. The breakthrough came from building a **standalone HTML test file** (no React, no Framer Motion) to isolate the CSS 3D behavior.
+
+**Step 1 — Get the rotation direction right:**
+- `rotateY(-90deg)→0` with left-center origin looks like CLOSING a book (cover sweeps from right to flat)
+- `rotateY(90deg)→0` with left-center origin looks like OPENING (cover sweeps from left to flat)
+- User confirmed: "the rotation is perfect" with `closed: 90`
+
+**Step 2 — Get the cover on the correct side:**
+- With `transformOrigin: "left center"`, the cover appeared on the LEFT of the spine (wrong)
+- Moving pivot to `transformOrigin: "72px center"` (right edge of spine) fixed it — cover now extends RIGHT of spine
+- Spine face needs `transformOrigin: "right center"` so its right edge shares the same hinge point as the body pivot
+
+**Step 3 — Eliminate the 72px gap when open:**
+- When body rotates to 0deg, the spine is edge-on (invisible) but still occupies 72px of space
+- Fixed by wrapping everything in a "scene" div that animates `left: 0 → -72px` when open
+- Container width animates from `SPINE_W` (72) to `COVER_W` (312)
+
+**Step 4 — Translate HTML test to React:**
+- All CSS values mapped 1:1 into Framer Motion `animate` props
+- Scene → `motion.div` with `animate={{ left: sceneLeft[state] }}`
+- Body → `motion.div` with `animate={{ rotateY: bodyRotation[state] }}`
+- Brand easing `[0.93, 0, 0.07, 1]` on all transitions
+
+### PaperTexture Shader — Attempted & Removed
+- Installed `@paper-design/shaders-react` and overlaid `<PaperTexture>` on cover/spine faces
+- **Problem:** With 20 books × 2 faces = 40 WebGL canvases, browsers hit the ~8-16 context limit — texture only appeared on random books each reload
+- Restricted to only the open book (`!isClosed`) — reduced to 2 canvases max
+- User decided to remove the shader entirely for now — package still installed but unused
+
+### Details State Polish
+- Scene fades to `opacity: 0` in details state to hide spine sliver caused by 3D perspective
+- Interior pages spread: `borderRadius: 12`, `overflow: "hidden"`, `boxShadow: "0 2px 24px rgba(0,0,0,0.12)"`
+- Bookshelf container: changed `overflow: "hidden"` → `overflowX: "clip"` to stop clipping shadows/3D transforms vertically
+
+## Workflow Orchestration
+
+### 1. Plan Mode Default
+- Enter plan mode for ANY non-trivial task (3+ steps or architectural decisions)
+- If something goes sideways, STOP and re-plan immediately – don't keep pushing
+- Use plan mode for verification steps, not just building
+- Write detailed specs upfront to reduce ambiguity
+
+### 2. Subagent Strategy
+- Use subagents liberally to keep main context window clean
+- Offload research, exploration, and parallel analysis to subagents
+- For complex problems, throw more compute at it via subagents
+- One task per subagent for focused execution
+
+### 3. Self-Improvement Loop
+- After ANY correction from the user: update `tasks/lessons.md` with the pattern
+- Write rules for yourself that prevent the same mistake
+- Ruthlessly iterate on these lessons until mistake rate drops
+- Review lessons at session start for relevant project
+
+### 4. Verification Before Done
+- Never mark a task complete without proving it works
+- Diff behavior between main and your changes when relevant
+- Ask yourself: "Would a staff engineer approve this?"
+- Run tests, check logs, demonstrate correctness
+
+### 5. Demand Elegance (Balanced)
+- For non-trivial changes: pause and ask "is there a more elegant way?"
+- If a fix feels hacky: "Knowing everything I know now, implement the elegant solution"
+- Skip this for simple, obvious fixes – don't over-engineer
+- Challenge your own work before presenting it
+
+### 6. Autonomous Bug Fixing
+- When given a bug report: just fix it. Don't ask for hand-holding
+- Point at logs, errors, failing tests – then resolve them
+- Zero context switching required from the user
+- Go fix failing CI tests without being told how
+
+## Task Management
+
+1. **Plan First**: Write plan to `tasks/todo.md` with checkable items
+2. **Verify Plan**: Check in before starting implementation
+3. **Track Progress**: Mark items complete as you go
+4. **Explain Changes**: High-level summary at each step
+5. **Document Results**: Add review section to `tasks/todo.md`
+6. **Capture Lessons**: Update `tasks/lessons.md` after corrections
+
+## Core Principles
+
+- **Simplicity First**: Make every change as simple as possible. Impact minimal code.
+- **No Laziness**: Find root causes. No temporary fixes. Senior developer standards.
+- **Minimal Impact**: Changes should only touch what's necessary. Avoid introducing bugs.
