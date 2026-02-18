@@ -105,7 +105,7 @@ export default function ImageStudioPage() {
 
         {/* Desktop Layout */}
         {!isMobile && (
-          <div className="flex flex-1 px-4 gap-4 overflow-hidden">
+          <div className="flex flex-1 px-4 gap-4 overflow-hidden pt-[80px]">
             <Sidebar {...sidebarProps} />
             <OutputArea
               status={state.status}
